@@ -30,13 +30,23 @@ data class Params(
 ) {
 
     fun addParams(params: Map<String, JsonElement>) : Params {
-        return this.copy(
-            other = this.other + params
-        )
+        var resultParams = this
+        for (pair in params){
+            if (pair.key !in listOf<String>("https", "lang", "extended", "V"))
+            {
+                resultParams = resultParams.addParam(pair.toPair())
+            }
+        }
+        return resultParams
     }
     fun addParam(key: String, element: JsonElement) : Params {
         return this.copy(
             other = this.other + (key to element)
+        )
+    }
+    fun addParam(pair: Pair<String, JsonElement>) : Params {
+        return this.copy(
+            other = this.other + pair
         )
     }
 }
@@ -60,11 +70,10 @@ data class VkApiRequest(
     }
 
     fun modifyUrl(
-        urlContinuation: String? = null
+        urlContinuation: String
     ) : VkApiRequest {
         return this.copy(
-            url = if (urlContinuation != null) this.url + urlContinuation
-                else this.url
+            url = this.url + urlContinuation
         )
     }
 }
