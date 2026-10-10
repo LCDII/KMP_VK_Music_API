@@ -24,10 +24,22 @@ enum class HttpMethod{
 data class Params(
     val https: Int = DEFAULT_HTTPS,
     val lang: String = DEFAULT_LANG,
-    val extend: Int = DEFAULT_EXTENDED,
+    val extended: Int = DEFAULT_EXTENDED,
     val v: String = DEFAULT_V,
     val other: Map<String, JsonElement> = emptyMap()
-)
+) {
+
+    fun addParams(params: Map<String, JsonElement>) : Params {
+        return this.copy(
+            other = this.other + params
+        )
+    }
+    fun addParam(key: String, element: JsonElement) : Params {
+        return this.copy(
+            other = this.other + (key to element)
+        )
+    }
+}
 
 @Serializable
 data class VkApiRequest(
@@ -38,14 +50,21 @@ data class VkApiRequest(
 ) {
     fun addToken(token: String): VkApiRequest {
         return this.copy(
-            params = this.params.copy(
-                other = this.params.other + (ACCESS_TOKEN_KEY to JsonPrimitive(token))
+            params = this.params.addParam(ACCESS_TOKEN_KEY, JsonPrimitive(token))
             )
-        )
     }
     fun addUserAgent(userAgent: String): VkApiRequest{
         return this.copy(
             headers = headers + (USER_AGENT_KEY to userAgent)
+        )
+    }
+
+    fun modifyUrl(
+        urlContinuation: String? = null
+    ) : VkApiRequest {
+        return this.copy(
+            url = if (urlContinuation != null) this.url + urlContinuation
+                else this.url
         )
     }
 }
