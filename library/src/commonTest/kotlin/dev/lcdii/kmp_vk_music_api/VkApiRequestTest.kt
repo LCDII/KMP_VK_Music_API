@@ -8,33 +8,33 @@ import kotlin.test.assertEquals
 
 class VkApiRequestTest {
     @Test
-    fun paramsCreationWithoutOtherIsAvailable(){
+    fun paramsCreationWithoutOtherIsValid() {
         val params = Params()
         val result = "Params(https=1, lang=ru, extended=1, v=5.131, other={})"
         assertEquals(params.toString(), result)
     }
     @Test
-    fun paramsCreationWithOtherIsAvailable(){
+    fun paramsCreationWithOtherIsValid() {
         val other = mapOf(("owner_id" to JsonPrimitive(123)))
         val params = Params( other = other)
         val result = "Params(https=1, lang=ru, extended=1, v=5.131, other={owner_id=123})"
         assertEquals(params.toString(), result)
     }
     @Test
-    fun singleAdditionalParamsIsAddable(){
+    fun singleAdditionalParamsIsValid() {
         val params = Params().addParam("owner_id", JsonPrimitive(123))
         val result = "Params(https=1, lang=ru, extended=1, v=5.131, other={owner_id=123})"
         assertEquals(params.toString(), result)
     }
     @Test
-    fun multipleAdditionalParamsAreAddable(){
+    fun multipleAdditionalParamsAreValid() {
         val other = mapOf(("owner_id" to JsonPrimitive(123)), ("count" to JsonPrimitive(1)))
         val params = Params().addParams(other)
         val result = "Params(https=1, lang=ru, extended=1, v=5.131, other={owner_id=123, count=1})"
         assertEquals(params.toString(), result)
     }
     @Test
-    fun existedParamsFieldAreIgnoredWhenOtherAdded(){
+    fun existedParamsFieldAreIgnoredWhenOtherAdded() {
         val other = mapOf(("owner_id" to JsonPrimitive(123)), ("count" to JsonPrimitive(1)),
             ("https" to JsonPrimitive(3)))
         val params = Params().addParams(other)
@@ -42,28 +42,28 @@ class VkApiRequestTest {
         assertEquals(params.toString(), result)
     }
     @Test
-    fun vkApiRequestCreationIsAvailable(){
+    fun vkApiRequestCreationIsValid() {
         val request = VkApiRequest()
         val result = "VkApiRequest(method=GET, url=https://api.vk.com/method/, headers={}, params=" +
                 "Params(https=1, lang=ru, extended=1, v=5.131, other={}))"
         assertEquals(request.toString(), result)
     }
     @Test
-    fun vkApiRequestTokenIsAddable(){
+    fun vkApiRequestTokenIsAddable() {
         val request = VkApiRequest().addToken("token")
         val result = "VkApiRequest(method=GET, url=https://api.vk.com/method/, headers={}, params=" +
                 "Params(https=1, lang=ru, extended=1, v=5.131, other={access_token=\"token\"}))"
         assertEquals(request.toString(), result)
     }
     @Test
-    fun vkApiRequestUserAgentIsAddable(){
+    fun vkApiRequestUserAgentIsAddable() {
         val request = VkApiRequest().addUserAgent("agent")
         val result = "VkApiRequest(method=GET, url=https://api.vk.com/method/, " +
                 "headers={User-Agent=agent}, params=Params(https=1, lang=ru, extended=1, v=5.131, other={}))"
         assertEquals(request.toString(), result)
     }
     @Test
-    fun vkApiRequestUrlCanBeModified(){
+    fun vkApiRequestUrlCanBeModified() {
         val request = VkApiRequest().modifyUrl("song")
         val result = "VkApiRequest(method=GET, url=https://api.vk.com/method/song, headers={}, params=" +
                 "Params(https=1, lang=ru, extended=1, v=5.131, other={}))"

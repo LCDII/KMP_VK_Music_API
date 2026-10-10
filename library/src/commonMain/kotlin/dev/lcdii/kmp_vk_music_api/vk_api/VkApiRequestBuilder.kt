@@ -67,13 +67,13 @@ class VkApiRequestBuilder {
 
     fun buildSearchAudioRequest(
         query: String,
-        count: Int,
-        offset: Int
+        count: Int = DEFAULT_AUDIO_COUNT,
+        offset: Int = DEFAULT_AUDIO_OFFSET
     ): VkApiRequest {
         val otherParams = mapOf<String, JsonElement>(
             ("q" to JsonPrimitive(query)),
             ("count" to JsonPrimitive(count)),
-            ("Offset" to JsonPrimitive(offset)),
+            ("offset" to JsonPrimitive(offset)),
             ("sort" to JsonPrimitive(DEFAULT_AUDIO_SORT_MODE)),
             ("autocomplete" to JsonPrimitive(DEFAULT_AUDIO_AUTOCOMPLETE_MODE))
         )
@@ -89,7 +89,7 @@ class VkApiRequestBuilder {
         val otherParams = mapOf<String, JsonElement>(
             ("q" to JsonPrimitive(query)),
             ("count" to JsonPrimitive(count)),
-            ("Offset" to JsonPrimitive(offset))
+            ("offset" to JsonPrimitive(offset))
         )
         val params = Params(other = otherParams)
         return VkApiRequest(params = params).modifyUrl(AUDIO_SEARCH_PLAYLIST_URL)
