@@ -9,12 +9,12 @@ private const val AUDIO_GET_URL = "audio.get"
 private const val AUDIO_SEARCH_URL = "audio.search"
 private const val AUDIO_PLAYLIST_GET_URL = "audio.getPlaylists"
 private const val AUDIO_SEARCH_PLAYLIST_URL = "audio.searchPlaylists"
-private const val DEFAULT_AUDIO_COUNT = 50
+private const val DEFAULT_AUDIO_COUNT = 100
 private const val DEFAULT_AUDIO_OFFSET = 0
 private const val DEFAULT_AUDIO_SORT_MODE = 0
 private const val DEFAULT_AUDIO_AUTOCOMPLETE_MODE = 1
 
-private const val DEFAULT_PLAYLIST_COUNT = 50
+private const val DEFAULT_PLAYLIST_COUNT = 100
 private const val DEFAULT_PLAYLIST_OFFSET = 0
 
 class VkApiRequestBuilder {
