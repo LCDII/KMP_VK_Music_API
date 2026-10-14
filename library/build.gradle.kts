@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.kotlinx.serialization)
+    alias(libs.plugins.kotlinx.resources)
 }
 
 kotlin {
@@ -31,6 +32,7 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.ktor.client.mock)
+            implementation(libs.kotlinx.resources)
         }
 
         commonMain.dependencies {

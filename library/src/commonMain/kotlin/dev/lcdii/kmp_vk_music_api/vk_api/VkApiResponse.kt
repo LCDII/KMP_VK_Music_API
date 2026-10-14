@@ -3,10 +3,16 @@ package dev.lcdii.kmp_vk_music_api.vk_api
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.descriptors.element
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.jsonObject
 import kotlin.time.Instant
 
 //NOT ful responses
@@ -14,7 +20,7 @@ import kotlin.time.Instant
 data class PhotoResponse(
     val width: Int,
     val height: Int,
-    val id: Int,
+    val id: String,
     @SerialName("photo_34")
     val photo34url: String,
     @SerialName("photo_68")
@@ -56,7 +62,7 @@ data class SongResponse(
     val title: String,
     val artist: String,
     val duration: Int,
-    @SerialName("access_ley")
+    @SerialName("access_key")
     val accessKey: String,
     @SerialName("is_explicit")
     val isExplicit: Boolean,
@@ -64,6 +70,12 @@ data class SongResponse(
     val isFocusTrack: Boolean,
     @SerialName("is_licensed")
     val isLicensed: Boolean,
+    @SerialName("track_code")
+    val trackCode: String,
+    @SerialName("genre_id")
+    val genreId: Int? = null,
+    val like: Boolean? = null,
+
     //custom
     @Serializable(with = InstantSerializer::class)
     val date: Instant,
@@ -77,7 +89,7 @@ data class SongResponse(
     val lyricsId: Int? = null,
     @SerialName("main_artists")
     val mainArtists: List<SongArtistResponse>? = null,
-    @SerialName("is_Official")
+    @SerialName("is_official")
     val isOfficial: Boolean,
     @SerialName("release_audio_id")
     val releaseAudioId: String
@@ -112,7 +124,7 @@ data class GenreResponse(
 @Serializable
 data class AlbumResponse(
     val id: Int,
-    @SerialName("")
+    @SerialName("owner_id")
     val ownerId: Int,
     val type: Int,
     val title: String,
@@ -143,7 +155,7 @@ data class AlbumResponse(
     val isExplicit: Boolean? = null,
     @SerialName("main_color")
     val mainColor: String? = null,
-    val year: String? = null,
+    val year: Int? = null,
     @SerialName("main_artists")
     val mainArtists: List<SongArtistResponse>? = null
     ) {
@@ -159,11 +171,28 @@ data class AlbumResponse(
             }
         }
 }
+
 sealed interface VkApiResponse {
-    @Serializable
+    //Audio Responses
+    @Serializable(with= AudioGetCount.CountSerializer::class)
     data class AudioGetCount(
         val count : Int,
-    ) : VkApiResponse
+    ) : VkApiResponse{
+        object CountSerializer: KSerializer<VkApiResponse.AudioGetCount>{
+            override val descriptor = buildClassSerialDescriptor("AudioGetCount") {
+                element<Int>("count")
+            }
+
+            override fun serialize(
+                encoder: Encoder,
+                value: AudioGetCount
+            ) = encoder.encodeInt(value.count)
+
+            override fun deserialize(decoder: Decoder): AudioGetCount =
+                AudioGetCount(decoder.decodeInt())
+
+        }
+    }
     @Serializable
     data class AudioGet(
         val count: Int,
@@ -175,27 +204,52 @@ sealed interface VkApiResponse {
         val count: Int,
         val items: List<SongResponse> = emptyList()
     ) : VkApiResponse
-    @Serializable
+    @Serializable(with =  AudioGetById.AudioGetByIdSerializer::class)
     data class AudioGetById(
         val items: List<SongResponse> = emptyList()
-    )
+    ) : VkApiResponse {
+        object AudioGetByIdSerializer : KSerializer<VkApiResponse.AudioGetById> {
+            override val descriptor = ListSerializer(SongResponse.serializer()).descriptor
+
+            override fun deserialize(decoder: Decoder): VkApiResponse.AudioGetById {
+                val list =
+                    decoder.decodeSerializableValue(ListSerializer(SongResponse.serializer()))
+                return VkApiResponse.AudioGetById(items = list)
+            }
+
+            override fun serialize(encoder: Encoder, value: VkApiResponse.AudioGetById) {
+                encoder.encodeSerializableValue(
+                    ListSerializer(SongResponse.serializer()),
+                    value.items
+                )
+            }
+        }
+    }
     @Serializable
     data class AudioGetPlayLists(
         val count: Int,
         val items: List<AlbumResponse> = emptyList(),
+        @SerialName("next_from")
         val nextFrom: String? = null
         //TODO profiles
-    )
+    ) : VkApiResponse{}
+
     @Serializable
     data class AudioSearchPlaylists(
         val count: Int,
         val items: List<AlbumResponse> = emptyList(),
 
-    )
+    ) : VkApiResponse
     @Serializable
     data class AudioSearchAlbums(
         val count: Int,
         val items: List<AlbumResponse>
-    )
+    ) : VkApiResponse
 
 }
+
+inline fun <reified T: VkApiResponse> Json.decodeResponse(jsonString: String): T =
+    this.decodeFromJsonElement<T>(
+        this.parseToJsonElement(jsonString).jsonObject["response"] ?:
+        error("No Response Object")
+    )

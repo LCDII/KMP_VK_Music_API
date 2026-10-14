@@ -28,7 +28,7 @@ class VkApiRequestBuilderTest {
         val request = VkApiRequestBuilder().buildGetUsersAudioRequest(userId)
         val result = "VkApiRequest(method=GET, url=https://api.vk.com/method/audio.get," +
                 " headers={}, params=Params(https=1, lang=ru, extended=1, v=5.131, " +
-                "other={owner_id=$userId, count=50, offset=0}))"
+                "other={owner_id=$userId, count=100, offset=0}))"
         assertEquals(request.toString(), result)
     }
     //TODO with playlistId
@@ -39,7 +39,7 @@ class VkApiRequestBuilderTest {
         val request = VkApiRequestBuilder().buildGetUsersPlaylistsRequest(userId)
         val result = "VkApiRequest(method=GET, url=https://api.vk.com/method/audio.getPlaylists," +
                 " headers={}, params=Params(https=1, lang=ru, extended=1, v=5.131, " +
-                "other={owner_id=$userId, count=50, offset=0}))"
+                "other={owner_id=$userId, count=100, offset=0}))"
         assertEquals(request.toString(), result)
     }
 
@@ -49,7 +49,7 @@ class VkApiRequestBuilderTest {
         val request = VkApiRequestBuilder().buildSearchAudioRequest(query)
         val result = "VkApiRequest(method=GET, url=https://api.vk.com/method/audio.search," +
                 " headers={}, params=Params(https=1, lang=ru, extended=1, v=5.131, " +
-                "other={q=\"$query\", count=50, offset=0, sort=0, autocomplete=1}))"
+                "other={q=\"$query\", count=100, offset=0, sort=0, autocomplete=1}))"
         assertEquals(request.toString(), result)
     }
 
@@ -59,7 +59,7 @@ class VkApiRequestBuilderTest {
         val request = VkApiRequestBuilder().buildSearchPlaylistsRequest(query)
         val result = "VkApiRequest(method=GET, url=https://api.vk.com/method/audio.searchPlaylists," +
                 " headers={}, params=Params(https=1, lang=ru, extended=1, v=5.131, " +
-                "other={q=\"$query\", count=50, offset=0}))"
+                "other={q=\"$query\", count=100, offset=0}))"
         assertEquals(request.toString(), result)
     }
 }

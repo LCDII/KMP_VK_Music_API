@@ -1,0 +1,55 @@
+{
+  "response": {
+    "count": 1,
+    "items": [
+      {
+        "artist": "MIA BOYKA",
+        "id": 456241000,
+        "owner_id": 336591731,
+        "title": "ЭКСПОНАТ (Полная Версия).",
+        "duration": 99,
+        "access_key": "93b126d421cbf89108",
+        "ads": {
+          "content_id": "336591731_456241000",
+          "duration": "99",
+          "account_age_type": "3",
+          "puid1": "554",
+          "puid22": "11"
+        },
+        "is_explicit": false,
+        "is_focus_track": false,
+        "is_licensed": true,
+        "track_code": "ec22698634eRrVucQPFx4c3OQJ9adI1Af-DT5zKu-ZTGzFqvMnWp7JKxPmaFfefVHCGxdWp0CLfMNg",
+        "url": "https://cs2-15v4.vkuseraudio.net/s/v1/ac/iBPlYqPc4qoxI0JTqSeeXsid6PdbatBixoZyPXdCVcWcm3jiqGjHw4zZDD4QchPUK8my4qh3oW0dXbitYyowZsFWJsbwBMW6PkxydUQfv2hThCuApNg-qNC4n62U28uLM06Kj4ctspbAzrzhInVZxSFu5jR52JLCus5Y40M4La7vrv4/index.m3u8?siren=1",
+        "date": 1791808851,
+        "like": true,
+        "genre_id": 18,
+        "album": {
+          "id": 27632388,
+          "title": "unnamed",
+          "owner_id": -2000632388,
+          "access_key": "da248a4e1c30bafe88",
+          "thumb": {
+            "width": 1500,
+            "height": 1500,
+            "id": "457239048",
+            "photo_34": "https://sun2-15.userapi.com/impg/PXsiUtv24B30YboyAlZcsij4AbU4U0-xwYZENA/-fBnwIsQKF8.jpg?size=34x34&quality=95&sign=2598d69ba7e702318f6ff639464acd5c&c_uniq_tag=pZlxJYyvDW-17SfqnWOrJhwAwquDvJyZC9dPSTgliZQ&type=audio",
+            "photo_68": "https://sun2-15.userapi.com/impg/PXsiUtv24B30YboyAlZcsij4AbU4U0-xwYZENA/-fBnwIsQKF8.jpg?size=68x68&quality=95&sign=efe0ed05763c6087bbc5e2345eb8dc4a&c_uniq_tag=r7NAImCdGmKIAUDe2UwFMQ9A5_Ar3648z6R6chywPLU&type=audio",
+            "photo_135": "https://sun2-15.userapi.com/impg/PXsiUtv24B30YboyAlZcsij4AbU4U0-xwYZENA/-fBnwIsQKF8.jpg?size=135x135&quality=95&sign=1c4d13a8ffaecd0b5e34cd32ce37af82&c_uniq_tag=Q3RwgKN0gGMYvcRHAreaJweGcxU6gjCOWHEYO7Qa3dI&type=audio",
+            "photo_270": "https://sun2-15.userapi.com/impg/PXsiUtv24B30YboyAlZcsij4AbU4U0-xwYZENA/-fBnwIsQKF8.jpg?size=270x270&quality=95&sign=e84891bf5bb6b29282d43f46b9027463&c_uniq_tag=5P3RIM27FXWkP8_-vJHh-D4Xko8V9pZqbxcEJuhLKF0&type=audio",
+            "photo_300": "https://sun2-15.userapi.com/impg/PXsiUtv24B30YboyAlZcsij4AbU4U0-xwYZENA/-fBnwIsQKF8.jpg?size=300x300&quality=95&sign=47ec78cbb05ea98e1e77524e28993119&c_uniq_tag=n87FOB0iLFsXmQlikaPH5UVXjW7rhF-1Ll-zdZyXgZc&type=audio",
+            "photo_600": "https://sun2-15.userapi.com/impg/PXsiUtv24B30YboyAlZcsij4AbU4U0-xwYZENA/-fBnwIsQKF8.jpg?size=600x600&quality=95&sign=8ec9c6bcdf44f7614355f58173dcb412&c_uniq_tag=LbL8jGCCwJSwaG7VRbqoJtI6y5Sx0_gYg8LNvDQO2wA&type=audio",
+            "photo_1200": "https://sun2-15.userapi.com/impg/PXsiUtv24B30YboyAlZcsij4AbU4U0-xwYZENA/-fBnwIsQKF8.jpg?size=1200x1200&quality=95&sign=159a2976c4e9ac0afbab6b720432ab04&c_uniq_tag=qS06UUYhqmqymHSXXd_KQqd0BK4y2XhGs7jsdIPBwno&type=audio"
+          },
+          "main_color": "#FFFFFF"
+        },
+        "track_id": 1303419376,
+        "short_videos_allowed": true,
+        "stories_allowed": true,
+        "is_official": false,
+        "release_audio_id": "-2001444231_149444231",
+        "file_id": "80f60040-f14b-4bb3-970e-90d43a897991"
+      }
+    ]
+  }
+}

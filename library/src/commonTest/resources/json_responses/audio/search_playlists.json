@@ -1,0 +1,46 @@
+{
+  "response": {
+    "count": 1,
+    "items": [
+      {
+        "id": 1776,
+        "owner_id": -147845620,
+        "type": 0,
+        "title": "Беззаботный рок",
+        "description": "",
+        "count": 25,
+        "followers": 7081,
+        "plays": 731400,
+        "create_time": 1576788783,
+        "update_time": 1694799063,
+        "genres": [],
+        "is_following": false,
+        "photo": {
+          "width": 1080,
+          "height": 1080,
+          "id": "457383197",
+          "photo_34": "https://sun2-19.userapi.com/impg/bI02M5lsTLT5ObtNgG8ByezKxoqr-002wW9JpA/if_yi4FxUVY.jpg?size=34x34&quality=95&sign=0b570ce7e7b5d948b904ccc53145d6ca&c_uniq_tag=k34d3CjMIm-Wa8KqjqtkH__94VWDzU1OzpZl0v2MMXg&type=audio",
+          "photo_68": "https://sun2-19.userapi.com/impg/bI02M5lsTLT5ObtNgG8ByezKxoqr-002wW9JpA/if_yi4FxUVY.jpg?size=68x68&quality=95&sign=b0cd36d71cf7d12fbc39e02ab265a612&c_uniq_tag=VyEx-LixvRCfXRedxB2VT-MmuqCpAHs2RL6ed10quIk&type=audio",
+          "photo_135": "https://sun2-19.userapi.com/impg/bI02M5lsTLT5ObtNgG8ByezKxoqr-002wW9JpA/if_yi4FxUVY.jpg?size=135x135&quality=95&sign=8714d5f797cbda56e981b283f9152438&c_uniq_tag=bEwDRvPNOXvEOP5eedLAfayjpNCFyvnRNrbtdBq4OEU&type=audio",
+          "photo_270": "https://sun2-19.userapi.com/impg/bI02M5lsTLT5ObtNgG8ByezKxoqr-002wW9JpA/if_yi4FxUVY.jpg?size=270x270&quality=95&sign=2d1903560d42ee8a421822d3fc8713a6&c_uniq_tag=oZjkev2hyZmZKOOZPDVEbABNdreA-aCsB33VpDivDNI&type=audio",
+          "photo_300": "https://sun2-19.userapi.com/impg/bI02M5lsTLT5ObtNgG8ByezKxoqr-002wW9JpA/if_yi4FxUVY.jpg?size=300x300&quality=95&sign=f12a442f97265dea55a43a836a1b0a55&c_uniq_tag=QxxMjhjuVIn-Zc6MzRD6wFJPolL8DpRh4bziaWN0jBs&type=audio",
+          "photo_600": "https://sun2-19.userapi.com/impg/bI02M5lsTLT5ObtNgG8ByezKxoqr-002wW9JpA/if_yi4FxUVY.jpg?size=600x600&quality=95&sign=16dbea145860d4ed7f9911d588c99125&c_uniq_tag=hSdhAqGY_vAuktr3gkxs6GJ04QpHXrxbpoh5bue3xJo&type=audio",
+          "photo_1200": "https://sun2-19.userapi.com/impg/bI02M5lsTLT5ObtNgG8ByezKxoqr-002wW9JpA/if_yi4FxUVY.jpg?size=1080x1080&quality=95&sign=bdf2d5e620d940b5da0f228e2980daf3&c_uniq_tag=7QxtXX7enc4kkiYH0L-A71JoF9q1JyGSXxpdA90mcd4&type=audio"
+        },
+        "permissions": {
+          "play": true,
+          "share": true,
+          "edit": false,
+          "follow": true,
+          "delete": false,
+          "boom_download": true
+        },
+        "subtitle_badge": false,
+        "play_button": false,
+        "access_key": "ce1351afea67c5ee60",
+        "album_type": "playlist",
+        "main_color": "#F58770"
+      }
+    ]
+  }
+}
