@@ -37,6 +37,7 @@ kotlin {
 
         commonMain.dependencies {
             implementation(libs.kotlinx.serialization.json)
+            api(libs.koin.core)
 
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.serialization.kotlinx.json)
@@ -47,6 +48,7 @@ kotlin {
         }
 
         androidMain.dependencies {
+            implementation(libs.koin.android)
             implementation(libs.ktor.client.okhttp)
         }
 
