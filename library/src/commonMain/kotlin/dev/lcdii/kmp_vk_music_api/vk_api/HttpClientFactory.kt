@@ -14,8 +14,8 @@ object HttpClientFactory {
             install(ContentNegotiation) {
                 json(
                     json = Json {
-                        ignoreUnknownKeys
-                        explicitNulls
+                        ignoreUnknownKeys = true
+                        explicitNulls = false
                     }
                 )
             }
