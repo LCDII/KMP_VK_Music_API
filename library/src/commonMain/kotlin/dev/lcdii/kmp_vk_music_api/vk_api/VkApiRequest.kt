@@ -1,26 +1,22 @@
 package dev.lcdii.kmp_vk_music_api.vk_api
 
+import dev.lcdii.kmp_vk_music_api.vk_api.components.ACCESS_TOKEN_KEY
+import dev.lcdii.kmp_vk_music_api.vk_api.components.BASE_URL
+import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_EXTENDED
+import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_HTTPS
+import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_LANG
+import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_V
+import dev.lcdii.kmp_vk_music_api.vk_api.components.USER_AGENT_KEY
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 
-private const val BASE_URL = "https://api.vk.com/method/"
-private const val DEFAULT_LANG = "ru"
-private const val DEFAULT_V = "5.131"
-private const val DEFAULT_HTTPS = 1
-private const val DEFAULT_EXTENDED = 1
-private const val ACCESS_TOKEN_KEY = "access_token"
-private const val USER_AGENT_KEY = "User-Agent"
-@Serializable
 enum class HttpMethod{
-    @SerialName("get")
     GET,
-    @SerialName("post")
     POST
 }
 
-@Serializable
 data class Params(
     val https: Int = DEFAULT_HTTPS,
     val lang: String = DEFAULT_LANG,
@@ -32,7 +28,7 @@ data class Params(
     fun addParams(params: Map<String, JsonElement>) : Params {
         var resultParams = this
         for (pair in params){
-            if (pair.key !in listOf<String>("https", "lang", "extended", "V"))
+            if (pair.key !in listOf<String>("https", "lang", "extended", "v"))
             {
                 resultParams = resultParams.addParam(pair.toPair())
             }
@@ -51,7 +47,6 @@ data class Params(
     }
 }
 
-@Serializable
 data class VkApiRequest(
     val method: HttpMethod = HttpMethod.GET,
     val url: String = BASE_URL,
