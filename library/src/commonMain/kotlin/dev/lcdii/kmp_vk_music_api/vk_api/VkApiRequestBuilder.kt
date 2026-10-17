@@ -1,23 +1,23 @@
 package dev.lcdii.kmp_vk_music_api.vk_api
 
+import dev.lcdii.kmp_vk_music_api.vk_api.components.AUDIO_COUNT_URL
+import dev.lcdii.kmp_vk_music_api.vk_api.components.AUDIO_GET_URL
+import dev.lcdii.kmp_vk_music_api.vk_api.components.AUDIO_PLAYLIST_GET_URL
+import dev.lcdii.kmp_vk_music_api.vk_api.components.AUDIO_SEARCH_PLAYLIST_URL
+import dev.lcdii.kmp_vk_music_api.vk_api.components.AUDIO_SEARCH_URL
+import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_AUDIO_AUTOCOMPLETE_MODE
+import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_AUDIO_COUNT
+import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_AUDIO_OFFSET
+import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_AUDIO_SORT_MODE
+import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_PLAYLIST_COUNT
+import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_PLAYLIST_OFFSET
+import dev.lcdii.kmp_vk_music_api.vk_api.components.PROFILE_INFO_URL
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 
-private const val PROFILE_INFO_URL = "account.getProfileInfo"
-private const val AUDIO_COUNT_URL = "audio.getCount"
-private const val AUDIO_GET_URL = "audio.get"
-private const val AUDIO_SEARCH_URL = "audio.search"
-private const val AUDIO_PLAYLIST_GET_URL = "audio.getPlaylists"
-private const val AUDIO_SEARCH_PLAYLIST_URL = "audio.searchPlaylists"
-private const val DEFAULT_AUDIO_COUNT = 100
-private const val DEFAULT_AUDIO_OFFSET = 0
-private const val DEFAULT_AUDIO_SORT_MODE = 0
-private const val DEFAULT_AUDIO_AUTOCOMPLETE_MODE = 1
 
-private const val DEFAULT_PLAYLIST_COUNT = 100
-private const val DEFAULT_PLAYLIST_OFFSET = 0
 
-class VkApiRequestBuilder {
+object VkApiRequestBuilder {
     fun buildGetProfileInfoRequest() =
         VkApiRequest().modifyUrl(urlContinuation = PROFILE_INFO_URL)
 

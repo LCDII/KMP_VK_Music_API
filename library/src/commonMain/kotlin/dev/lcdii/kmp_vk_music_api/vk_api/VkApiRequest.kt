@@ -7,8 +7,6 @@ import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_HTTPS
 import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_LANG
 import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_V
 import dev.lcdii.kmp_vk_music_api.vk_api.components.USER_AGENT_KEY
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 
