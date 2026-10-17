@@ -1,10 +1,13 @@
 package dev.lcdii.kmp_vk_music_api
 
 import com.goncalossilva.resources.Resource
+import dev.lcdii.kmp_vk_music_api.components.responses.audio.EXPECTED_GET_COUNT
+import dev.lcdii.kmp_vk_music_api.components.responses.audio.EXPECTED_GET
+import dev.lcdii.kmp_vk_music_api.components.responses.audio.EXPECTED_GET_BY_ID
 import dev.lcdii.kmp_vk_music_api.vk_api.HttpClientFactory
 import dev.lcdii.kmp_vk_music_api.vk_api.VkApiRequestBuilder
-import dev.lcdii.kmp_vk_music_api.vk_api.components.AUDIO_COUNT_URL
-import dev.lcdii.kmp_vk_music_api.vk_api.components.BASE_URL
+import dev.lcdii.kmp_vk_music_api.vk_api.VkApiResponse
+import io.ktor.client.call.body
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.request.get
@@ -50,7 +53,9 @@ class HttpClientTest {
             for(p in request.params.other) {
                 parameter(p.key, p.value)
             }
-        }
-
+        }.body<VkApiResponse.AudioGetCount>()
+        assertEquals(EXPECTED_GET_COUNT, response)
     }
+
+
 }

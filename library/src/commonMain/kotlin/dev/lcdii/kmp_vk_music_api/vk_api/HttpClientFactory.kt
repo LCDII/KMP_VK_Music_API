@@ -5,18 +5,21 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
-import io.ktor.serialization.kotlinx.json.json
+import io.ktor.http.ContentType
 import kotlinx.serialization.json.Json
 
 object HttpClientFactory {
     fun create(engine: HttpClientEngine): HttpClient {
+        val json = Json {
+            ignoreUnknownKeys = true
+            explicitNulls = false
+        }
+
         return HttpClient(engine) {
             install(ContentNegotiation) {
-                json(
-                    json = Json {
-                        ignoreUnknownKeys = true
-                        explicitNulls = false
-                    }
+                register(
+                    ContentType.Application.Json,
+                    VkApiContentConverter(json)
                 )
             }
             install(Logging) {
