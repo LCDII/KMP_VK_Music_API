@@ -2,9 +2,7 @@ package dev.lcdii.kmp_vk_music_api
 
 import com.goncalossilva.resources.Resource
 import dev.lcdii.kmp_vk_music_api.components.responses.audio.EXPECTED_GET_COUNT
-import dev.lcdii.kmp_vk_music_api.components.responses.audio.EXPECTED_GET
-import dev.lcdii.kmp_vk_music_api.components.responses.audio.EXPECTED_GET_BY_ID
-import dev.lcdii.kmp_vk_music_api.vk_api.HttpClientFactory
+import dev.lcdii.kmp_vk_music_api.vk_api.data.HttpClientFactory
 import dev.lcdii.kmp_vk_music_api.vk_api.VkApiRequestBuilder
 import dev.lcdii.kmp_vk_music_api.vk_api.VkApiResponse
 import io.ktor.client.call.body
