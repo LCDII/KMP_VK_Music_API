@@ -15,7 +15,10 @@ import dev.lcdii.kmp_vk_music_api.vk_api.components.PROFILE_INFO_URL
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 
-
+data class PlaylistAttributes(
+    val playlistId: Int,
+    val accessKey: String
+)
 
 object VkApiRequestBuilder {
     fun buildGetProfileInfoRequest() =
@@ -33,8 +36,7 @@ object VkApiRequestBuilder {
         userId: Int,
         count: Int = DEFAULT_AUDIO_COUNT,
         offset: Int = DEFAULT_AUDIO_OFFSET,
-        playlistId: Int? = null,//TODO both in one
-        accessKey: Int? = null
+        playlistAttributes: PlaylistAttributes? = null
     ) : VkApiRequest {
         val otherParams = mapOf<String, JsonElement>(
             ("owner_id" to JsonPrimitive(userId)),
@@ -42,11 +44,10 @@ object VkApiRequestBuilder {
             ("offset" to JsonPrimitive(offset))
         )
         var params = Params(other = otherParams)
-        playlistId?.let { it ->
-            params = params.addParam("album_id", JsonPrimitive(it))
-        }
-        accessKey?.let { it->
-            params = params.addParam("access_key", JsonPrimitive(it))
+        playlistAttributes?.let {
+            params = params
+                .addParam("album_id", JsonPrimitive(it.playlistId))
+                .addParam("access_key", JsonPrimitive(it.accessKey))
         }
         return VkApiRequest(params = params).modifyUrl(AUDIO_GET_URL)
     }

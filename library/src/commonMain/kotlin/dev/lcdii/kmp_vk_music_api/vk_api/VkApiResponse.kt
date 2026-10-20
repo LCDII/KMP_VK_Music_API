@@ -172,7 +172,7 @@ data class AlbumResponse(
         }
 }
 
-sealed interface VkApiResponse {
+sealed interface VkApiResponse: ApiResponse {
     //Audio Responses
     @Serializable(with= AudioGetCount.CountSerializer::class)
     data class AudioGetCount(
