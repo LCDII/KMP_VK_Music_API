@@ -1,72 +1,122 @@
 package dev.lcdii.kmp_vk_music_api.vk_api
 
-import dev.lcdii.kmp_vk_music_api.vk_api.components.ACCESS_TOKEN_KEY
-import dev.lcdii.kmp_vk_music_api.vk_api.components.BASE_URL
-import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_EXTENDED
-import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_HTTPS
-import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_LANG
-import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_V
-import dev.lcdii.kmp_vk_music_api.vk_api.components.USER_AGENT_KEY
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonPrimitive
+import dev.lcdii.kmp_vk_music_api.vk_api.components.AUDIO_COUNT_URL
+import dev.lcdii.kmp_vk_music_api.vk_api.components.AUDIO_GET_URL
+import dev.lcdii.kmp_vk_music_api.vk_api.components.AUDIO_PLAYLIST_GET_URL
+import dev.lcdii.kmp_vk_music_api.vk_api.components.AUDIO_SEARCH_PLAYLIST_URL
+import dev.lcdii.kmp_vk_music_api.vk_api.components.AUDIO_SEARCH_URL
+import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_AUDIO_AUTOCOMPLETE_MODE
+import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_AUDIO_COUNT
+import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_AUDIO_OFFSET
+import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_AUDIO_SORT_MODE
+import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_PLAYLIST_COUNT
+import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_PLAYLIST_OFFSET
+import dev.lcdii.kmp_vk_music_api.vk_api.components.PROFILE_INFO_URL
 
-enum class HttpMethod{
+enum class HttpMethod {
     GET,
     POST
 }
 
-data class Params(
-    val https: Int = DEFAULT_HTTPS,
-    val lang: String = DEFAULT_LANG,
-    val extended: Int = DEFAULT_EXTENDED,
-    val v: String = DEFAULT_V,
-    val other: Map<String, JsonElement> = emptyMap()
-) {
+interface VkApiRequestParameters
 
-    fun addParams(params: Map<String, JsonElement>) : Params {
-        var resultParams = this
-        for (pair in params){
-            if (pair.key !in listOf<String>("https", "lang", "extended", "v"))
-            {
-                resultParams = resultParams.addParam(pair.toPair())
-            }
-        }
-        return resultParams
-    }
-    fun addParam(key: String, element: JsonElement) : Params {
-        return this.copy(
-            other = this.other + (key to element)
-        )
-    }
-    fun addParam(pair: Pair<String, JsonElement>) : Params {
-        return this.copy(
-            other = this.other + pair
-        )
-    }
-}
+data class PlaylistAttributes(
+    val playlistId: Int,
+    val accessKey: String
+)
 
-data class VkApiRequest(
-    val method: HttpMethod = HttpMethod.GET,
-    val url: String = BASE_URL,
-    val headers: Map<String, String> =  emptyMap(),
-    val params: Params = Params()
-) {
-    fun addToken(token: String): VkApiRequest {
-        return this.copy(
-            params = this.params.addParam(ACCESS_TOKEN_KEY, JsonPrimitive(token))
-            )
-    }
-    fun addUserAgent(userAgent: String): VkApiRequest{
-        return this.copy(
-            headers = headers + (USER_AGENT_KEY to userAgent)
-        )
-    }
+sealed interface VkApiRequest {
+    val method: HttpMethod
+    val path: String
+    val headers: Map<String, String>
+    val parameters: VkApiRequestParameters
 
-    fun modifyUrl(
-        urlContinuation: String
+    data class GetProfileInfo(
+        override val headers: Map<String, String> = emptyMap()
     ) : VkApiRequest {
-        return this.copy(
-            url = this.url + urlContinuation
+        override val method = HttpMethod.GET
+        override val path = PROFILE_INFO_URL
+        override val parameters = Parameters
+
+        data object Parameters : VkApiRequestParameters
+    }
+
+    data class GetUsersAudioCount(
+        override val parameters: Parameters,
+        override val headers: Map<String, String> = emptyMap()
+    ) : VkApiRequest {
+        override val method = HttpMethod.GET
+        override val path = AUDIO_COUNT_URL
+
+        data class Parameters(
+            val ownerId: Int
+        ) : VkApiRequestParameters
+
+        constructor(
+            ownerId: Int,
+            headers: Map<String, String> = emptyMap()
+        ) : this(
+            parameters = Parameters(ownerId),
+            headers = headers
         )
+    }
+
+    data class GetUsersAudio(
+        override val parameters: Parameters,
+        override val headers: Map<String, String> = emptyMap()
+    ) : VkApiRequest {
+        override val method = HttpMethod.GET
+        override val path = AUDIO_GET_URL
+
+        data class Parameters(
+            val ownerId: Int,
+            val count: Int = DEFAULT_AUDIO_COUNT,
+            val offset: Int = DEFAULT_AUDIO_OFFSET,
+            val playlistAttributes: PlaylistAttributes? = null
+        ) : VkApiRequestParameters
+    }
+
+    data class GetUsersPlaylists(
+        override val parameters: Parameters,
+        override val headers: Map<String, String> = emptyMap()
+    ) : VkApiRequest {
+        override val method = HttpMethod.GET
+        override val path = AUDIO_PLAYLIST_GET_URL
+
+        data class Parameters(
+            val ownerId: Int,
+            val count: Int = DEFAULT_PLAYLIST_COUNT,
+            val offset: Int = DEFAULT_PLAYLIST_OFFSET
+        ) : VkApiRequestParameters
+    }
+
+    data class SearchAudio(
+        override val parameters: Parameters,
+        override val headers: Map<String, String> = emptyMap()
+    ) : VkApiRequest {
+        override val method = HttpMethod.GET
+        override val path = AUDIO_SEARCH_URL
+
+        data class Parameters(
+            val query: String,
+            val count: Int = DEFAULT_AUDIO_COUNT,
+            val offset: Int = DEFAULT_AUDIO_OFFSET,
+            val sort: Int = DEFAULT_AUDIO_SORT_MODE,
+            val autocomplete: Int = DEFAULT_AUDIO_AUTOCOMPLETE_MODE
+        ) : VkApiRequestParameters
+    }
+
+    data class SearchPlaylists(
+        override val parameters: Parameters,
+        override val headers: Map<String, String> = emptyMap()
+    ) : VkApiRequest {
+        override val method = HttpMethod.GET
+        override val path = AUDIO_SEARCH_PLAYLIST_URL
+
+        data class Parameters(
+            val query: String,
+            val count: Int = DEFAULT_PLAYLIST_COUNT,
+            val offset: Int = DEFAULT_PLAYLIST_OFFSET
+        ) : VkApiRequestParameters
     }
 }
