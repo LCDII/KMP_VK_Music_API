@@ -36,6 +36,19 @@ data class PhotoResponse(
     @SerialName("photo_1200")
     val photo1200url: String,
 )
+
+@Serializable
+data class CityResponse(
+    val id: Int,
+    val title: String
+)
+
+@Serializable
+data class CountryResponse(
+    val id: Int,
+    val title: String
+)
+
 @Serializable
 data class SongAlbumResponse(
     val id: Int,
@@ -82,17 +95,17 @@ data class SongResponse(
     val url: String,
     val album: SongAlbumResponse? = null,
     @SerialName("track_id")
-    val trackId: Int,
+    val trackId: Int? = null,
     @SerialName("file_id")
-    val fileId: String,
+    val fileId: String? = null,
     @SerialName("lyrics_id")
     val lyricsId: Int? = null,
     @SerialName("main_artists")
     val mainArtists: List<SongArtistResponse>? = null,
     @SerialName("is_official")
-    val isOfficial: Boolean,
+    val isOfficial: Boolean = false,
     @SerialName("release_audio_id")
-    val releaseAudioId: String
+    val releaseAudioId: String? = null
 ) {
     object InstantSerializer : KSerializer<Instant>{
         override val descriptor = PrimitiveSerialDescriptor("InstantFromSeconds",
@@ -173,6 +186,33 @@ data class AlbumResponse(
 }
 
 sealed interface VkApiResponse: ApiResponse {
+    @Serializable
+    data class ProfileInfo(
+        val id: Int,
+
+        @SerialName("first_name")
+        val firstName: String,
+
+        @SerialName("last_name")
+        val lastName: String,
+
+        @SerialName("screen_name")
+        val screenName: String? = null,
+
+        val sex: Int = 0,
+        val bdate: String? = null,
+        val status: String? = null,
+
+        @SerialName("photo_200")
+        val photo200: String? = null,
+
+        val city: CityResponse? = null,
+        val country: CountryResponse? = null,
+
+        @SerialName("is_verified")
+        val isVerified: Boolean = false
+    ) : VkApiResponse
+
     //Audio Responses
     @Serializable(with= AudioGetCount.CountSerializer::class)
     data class AudioGetCount(

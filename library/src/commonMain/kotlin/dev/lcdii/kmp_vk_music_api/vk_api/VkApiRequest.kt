@@ -74,6 +74,22 @@ sealed interface VkApiRequest {
             val offset: Int = DEFAULT_AUDIO_OFFSET,
             val playlistAttributes: PlaylistAttributes? = null
         ) : VkApiRequestParameters
+
+        constructor(
+            ownerId: Int,
+            count: Int?,
+            offset: Int?,
+            playlistAttributes: PlaylistAttributes? = null,
+            headers: Map<String, String> = emptyMap()
+        ) : this(
+            parameters = Parameters(
+                ownerId = ownerId,
+                count = count ?: DEFAULT_AUDIO_COUNT,
+                offset = offset ?: DEFAULT_AUDIO_OFFSET,
+                playlistAttributes = playlistAttributes
+            ),
+            headers = headers
+        )
     }
 
     data class GetUsersPlaylists(
@@ -88,6 +104,20 @@ sealed interface VkApiRequest {
             val count: Int = DEFAULT_PLAYLIST_COUNT,
             val offset: Int = DEFAULT_PLAYLIST_OFFSET
         ) : VkApiRequestParameters
+
+        constructor(
+            ownerId: Int,
+            count: Int?,
+            offset: Int?,
+            headers: Map<String, String> = emptyMap()
+        ) : this(
+            parameters = Parameters(
+                ownerId = ownerId,
+                count = count ?: DEFAULT_PLAYLIST_COUNT,
+                offset = offset ?: DEFAULT_PLAYLIST_OFFSET
+            ),
+            headers = headers
+        )
     }
 
     data class SearchAudio(
@@ -104,6 +134,24 @@ sealed interface VkApiRequest {
             val sort: Int = DEFAULT_AUDIO_SORT_MODE,
             val autocomplete: Int = DEFAULT_AUDIO_AUTOCOMPLETE_MODE
         ) : VkApiRequestParameters
+
+        constructor(
+            query: String,
+            count: Int? = DEFAULT_AUDIO_COUNT,
+            offset: Int? = DEFAULT_AUDIO_OFFSET,
+            sort: Int = DEFAULT_AUDIO_SORT_MODE,
+            autocomplete: Int = DEFAULT_AUDIO_AUTOCOMPLETE_MODE,
+            headers: Map<String, String> = emptyMap()
+        ) : this(
+            parameters = Parameters(
+                query = query,
+                count = count ?: DEFAULT_AUDIO_COUNT,
+                offset = offset ?: DEFAULT_AUDIO_OFFSET,
+                sort = sort,
+                autocomplete = autocomplete
+            ),
+            headers = headers
+        )
     }
 
     data class SearchPlaylists(
@@ -118,5 +166,19 @@ sealed interface VkApiRequest {
             val count: Int = DEFAULT_PLAYLIST_COUNT,
             val offset: Int = DEFAULT_PLAYLIST_OFFSET
         ) : VkApiRequestParameters
+
+        constructor(
+            query: String,
+            count: Int?,
+            offset: Int?,
+            headers: Map<String, String> = emptyMap()
+        ) : this(
+            parameters = Parameters(
+                query = query,
+                count = count ?: DEFAULT_PLAYLIST_COUNT,
+                offset = offset ?: DEFAULT_PLAYLIST_OFFSET
+            ),
+            headers = headers
+        )
     }
 }
