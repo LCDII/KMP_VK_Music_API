@@ -7,6 +7,7 @@ serialization = "1.11.0"
 ktor = "3.6.0"
 resources = "0.16.2"
 koin = "4.2.2"
+selenium = "4.29.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -24,6 +25,7 @@ ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "k
 ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
 ktor-client-mock = { module = "io.ktor:ktor-client-mock", version.ref = "ktor" }
 kotlinx-resources = { module = "com.goncalossilva:resources", version.ref = "resources"}
+selenium-java = { module = "org.seleniumhq.selenium:selenium-java", version.ref = "selenium" }
 
 [plugins]
 androidMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }

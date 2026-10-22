@@ -54,6 +54,7 @@ kotlin {
 
         jvmMain.dependencies {
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.selenium.java)
         }
 
         iosMain.dependencies {
