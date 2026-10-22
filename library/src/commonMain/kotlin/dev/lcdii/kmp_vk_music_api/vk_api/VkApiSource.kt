@@ -2,7 +2,7 @@ package dev.lcdii.kmp_vk_music_api.vk_api
 
 import dev.lcdii.kmp_vk_music_api.vk_api.core.DataError
 import dev.lcdii.kmp_vk_music_api.vk_api.core.Result
-import dev.lcdii.kmp_vk_music_api.vk_api.core.TOKEN
+import dev.lcdii.kmp_vk_music_api.vk_api.core.TokenKeeper
 import dev.lcdii.kmp_vk_music_api.vk_api.data.safeCall
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
@@ -16,6 +16,103 @@ class VkApiSource(
     private val appClient: AppClient,
     private val json: Json
 ): ApiSource {
+    override suspend fun authenticate(
+        login: String,
+        password: String,
+        captchaResolver: VkCaptchaResolver
+    ): Result<ApiResponse, DataError.Remote> {
+        var successToken: String? = null
+        var validationCode: String? = null
+
+        while (true) {
+            val request = VkApiRequest.Authenticate(
+                login = login,
+                password = password,
+                appClient = appClient,
+                successToken = successToken,
+                code = validationCode,
+                headers = mapOf("User-Agent" to appClient.userAgent)
+            )
+
+            when (val result = safeCall<VkApiResponse.AuthResponse>(json) {
+                executeAuthenticate(request)
+            }) {
+                is Result.Success -> {
+                    TokenKeeper.token = result.data.accessToken
+                    return Result.Success(result.data)
+                }
+
+                is Result.Error -> {
+                    val apiError = (result.error as? DataError.Remote.Api)?.error
+                        ?: return Result.Error(result.error)
+
+                    when (apiError) {
+                        is VkApiError.TextError -> when (apiError.type) {
+                            TextErrorType.NEED_CAPTCHA -> {
+                                val redirectUri = apiError.redirectUri
+                                    ?: return Result.Error(result.error)
+                                successToken = captchaResolver.resolve(redirectUri)
+                            }
+
+                            TextErrorType.NEED_VALIDATION -> {
+                                when (val validationResult = requestValidationCode(apiError)) {
+                                    is Result.Error -> return Result.Error(validationResult.error)
+                                    is Result.Success -> {
+                                        validationCode = VkValidationResolver.resolve(apiError)
+                                    }
+                                }
+                            }
+
+                            else -> return Result.Error(result.error)
+                        }
+
+                        else -> return Result.Error(result.error)
+                    }
+                }
+            }
+        }
+    }
+
+    private suspend fun executeAuthenticate(
+        request: VkApiRequest.Authenticate
+    ) = httpClient.get(request.path) {
+        for ((key, value) in request.headers) {
+            header(key, value)
+        }
+        parameter("grant_type", "password")
+        parameter("client_id", request.parameters.clientId)
+        parameter("client_secret", request.parameters.clientSecret)
+        parameter("username", request.parameters.login)
+        parameter("password", request.parameters.password)
+        parameter("scope", "audio,offline")
+        parameter("2fa_supported", 1)
+        parameter("force_sms", 1)
+        parameter("v", "5.131")
+        request.parameters.successToken?.let { parameter("success_token", it) }
+        request.parameters.code?.let { parameter("code", it) }
+    }
+
+    private suspend fun requestValidationCode(
+        error: VkApiError.TextError
+    ): Result<VkApiResponse.ValidatePhoneResponse, DataError.Remote> {
+        val sid = error.validationSid
+            ?: return Result.Error(DataError.Remote.Api(error))
+        val request = VkApiRequest.ValidatePhone(
+            sid = sid,
+            headers = mapOf("User-Agent" to appClient.userAgent)
+        )
+
+        return safeCall<VkApiResponse.ValidatePhoneResponse>(json) {
+            httpClient.get(request.path) {
+                for ((key, value) in request.headers) {
+                    header(key, value)
+                }
+                parameter("sid", request.parameters.sid)
+                parameter("v", "5.131")
+            }
+        }
+    }
+
     override suspend fun getProfileInfo(): Result<VkApiResponse.ProfileInfo, DataError.Remote> {
         return safeCall<VkApiResponse.ProfileInfo>(json){
             val request = VkApiRequest.GetProfileInfo(
@@ -26,7 +123,7 @@ class VkApiSource(
                 for ((key, value) in request.headers) {
                     header(key, value)
                 }
-                parameter("access_token", TOKEN)
+                TokenKeeper.token?.let { parameter("access_token", it) }
             }
         }
     }
@@ -44,7 +141,7 @@ class VkApiSource(
                     header(key, value)
                 }
                 parameter("owner_id", request.parameters.ownerId)
-                parameter("access_token", TOKEN)
+                TokenKeeper.token?.let { parameter("access_token", it) }
             }
         }
     }
@@ -74,7 +171,7 @@ class VkApiSource(
                 parameter("offset", request.parameters.offset)
                 parameter("album_id", request.parameters.playlistAttributes?.playlistId)
                 parameter("access_key", request.parameters.playlistAttributes?.accessKey)
-                parameter("access_token", TOKEN)
+                TokenKeeper.token?.let { parameter("access_token", it) }
             }
         }
     }
@@ -100,7 +197,7 @@ class VkApiSource(
                 parameter("owner_id", request.parameters.ownerId)
                 parameter("count", request.parameters.count)
                 parameter("offset", request.parameters.offset)
-                parameter("access_token", TOKEN)
+                TokenKeeper.token?.let { parameter("access_token", it) }
             }
         }
     }
@@ -128,7 +225,7 @@ class VkApiSource(
                 parameter("offset", request.parameters.offset)
                 parameter("sort", request.parameters.sort)
                 parameter("autocomplete", request.parameters.autocomplete)
-                parameter("access_token", TOKEN)
+                TokenKeeper.token?.let { parameter("access_token", it) }
             }
         }
     }
@@ -154,7 +251,7 @@ class VkApiSource(
                 parameter("q", request.parameters.query)
                 parameter("count", request.parameters.count)
                 parameter("offset", request.parameters.offset)
-                parameter("access_token", TOKEN)
+                TokenKeeper.token?.let { parameter("access_token", it) }
             }
         }
     }

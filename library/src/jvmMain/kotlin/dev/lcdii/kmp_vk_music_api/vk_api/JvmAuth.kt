@@ -1,14 +1,18 @@
 package dev.lcdii.kmp_vk_music_api.vk_api
 
+import dev.lcdii.kmp_vk_music_api.vk_api.core.DataError
+import dev.lcdii.kmp_vk_music_api.vk_api.core.Result
+import org.koin.mp.KoinPlatformTools
+
 object JvmAuth {
     suspend fun authenticate(
         login: String,
         password: String
-    ) : String {
-        return Auth.authenticate(
-            login,
-            password,
-            JvmVkCaptchaResolver()
+    ): Result<ApiResponse, DataError.Remote> {
+        return KoinPlatformTools.defaultContext().get().get<ApiSource>().authenticate(
+            login = login,
+            password = password,
+            captchaResolver = JvmVkCaptchaResolver()
         )
     }
 }

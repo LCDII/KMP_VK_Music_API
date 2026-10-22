@@ -1,6 +1,6 @@
 package dev.lcdii.kmp_vk_music_api.vk_api.data
 
-import dev.lcdii.kmp_vk_music_api.vk_api.TextExceptionType
+import dev.lcdii.kmp_vk_music_api.vk_api.TextErrorType
 import dev.lcdii.kmp_vk_music_api.vk_api.VkApiError
 import dev.lcdii.kmp_vk_music_api.vk_api.core.DataError
 import dev.lcdii.kmp_vk_music_api.vk_api.core.Result
@@ -60,8 +60,7 @@ suspend inline fun <reified T> responseToResult(
 
     return when (response.status.value) {
         in 200..299 -> {
-            val responseJson = root["response"]
-                ?: return Result.Error(DataError.Remote.Serialization)
+            val responseJson = root["response"] ?: root
 
             try {
                 Result.Success(json.decodeFromJsonElement<T>(responseJson))
@@ -82,28 +81,30 @@ internal fun parseVkApiError(root: JsonObject): VkApiError? {
 
     return when (error) {
         is JsonObject -> when {
-            "error_code" in error -> VkApiError.CodeException(
+            "error_code" in error -> VkApiError.CodeError(
                 code = error.getValue("error_code").jsonPrimitive.int,
                 message = error.getValue("error_msg").jsonPrimitive.content
             )
 
-            "error" in error -> VkApiError.TextException(
-                type = TextExceptionType.fromString(
+            "error" in error -> VkApiError.TextError(
+                type = TextErrorType.fromString(
                     error.getValue("error").jsonPrimitive.content
                 ),
-                description = error.getValue("error_description")
-                    .jsonPrimitive
-                    .content
+                description = error["error_description"]?.jsonPrimitive?.content,
+                redirectUri = error["redirect_uri"]?.jsonPrimitive?.content,
+                validationType = error["validation_type"]?.jsonPrimitive?.content,
+                validationSid = error["validation_sid"]?.jsonPrimitive?.content
             )
 
             else -> VkApiError.UnknownError(error.toString())
         }
 
-        is JsonPrimitive -> VkApiError.TextException(
-            type = TextExceptionType.fromString(error.content),
-            description = root.getValue("error_description")
-                .jsonPrimitive
-                .content
+        is JsonPrimitive -> VkApiError.TextError(
+            type = TextErrorType.fromString(error.content),
+            description = root["error_description"]?.jsonPrimitive?.content,
+            redirectUri = root["redirect_uri"]?.jsonPrimitive?.content,
+            validationType = root["validation_type"]?.jsonPrimitive?.content,
+            validationSid = root["validation_sid"]?.jsonPrimitive?.content
         )
 
         else -> VkApiError.UnknownError(root.toString())

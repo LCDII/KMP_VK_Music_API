@@ -187,25 +187,36 @@ data class AlbumResponse(
 
 sealed interface VkApiResponse: ApiResponse {
     @Serializable
+    data class AuthResponse(
+        @SerialName("access_token")
+        val accessToken: String,
+        @SerialName("expires_in")
+        val expiresIn: Int? = null,
+        @SerialName("user_id")
+        val userId: Int? = null
+    ) : VkApiResponse
+
+    @Serializable
+    data class ValidatePhoneResponse(
+        val type: String? = null,
+        val sid: String? = null,
+        val delay: Int? = null
+    ) : VkApiResponse
+
+    @Serializable
     data class ProfileInfo(
         val id: Int,
-
         @SerialName("first_name")
         val firstName: String,
-
         @SerialName("last_name")
         val lastName: String,
-
         @SerialName("screen_name")
         val screenName: String? = null,
-
         val sex: Int = 0,
         val bdate: String? = null,
         val status: String? = null,
-
         @SerialName("photo_200")
         val photo200: String? = null,
-
         val city: CityResponse? = null,
         val country: CountryResponse? = null,
 
@@ -222,12 +233,10 @@ sealed interface VkApiResponse: ApiResponse {
             override val descriptor = buildClassSerialDescriptor("AudioGetCount") {
                 element<Int>("count")
             }
-
             override fun serialize(
                 encoder: Encoder,
                 value: AudioGetCount
             ) = encoder.encodeInt(value.count)
-
             override fun deserialize(decoder: Decoder): AudioGetCount =
                 AudioGetCount(decoder.decodeInt())
 
