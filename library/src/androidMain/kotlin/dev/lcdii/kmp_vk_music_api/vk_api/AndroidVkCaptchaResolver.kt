@@ -1,11 +1,13 @@
 package dev.lcdii.kmp_vk_music_api.vk_api
 
 import android.app.Activity
+import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.webkit.JavascriptInterface
 import org.json.JSONTokener
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
@@ -42,6 +44,15 @@ class AndroidVkCaptchaResolver(
                     continuation.resume(token)
                 }
 
+                webView.addJavascriptInterface(object {
+                    @JavascriptInterface
+                    fun onSuccess(token: String?) {
+                        if (!token.isNullOrBlank()) {
+                            activity.runOnUiThread { finish(token) }
+                        }
+                    }
+                }, "AndroidCaptchaBridge")
+
                 fun pollToken() {
                     if (completed) return
 
@@ -64,6 +75,11 @@ class AndroidVkCaptchaResolver(
                 webView.settings.javaScriptEnabled = true
                 webView.settings.domStorageEnabled = true
                 webView.webViewClient = object : WebViewClient() {
+                    override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
+                        Uri.parse(url).getQueryParameter("success_token")?.let { finish(it) }
+                        return false
+                    }
+
                     override fun onPageStarted(
                         view: WebView,
                         url: String?,

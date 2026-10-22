@@ -7,6 +7,8 @@ import platform.Foundation.NSURLRequest
 import platform.UIKit.UIViewController
 import platform.WebKit.WKNavigation
 import platform.WebKit.WKNavigationDelegateProtocol
+import platform.WebKit.WKScriptMessage
+import platform.WebKit.WKScriptMessageHandlerProtocol
 import platform.WebKit.WKUserContentController
 import platform.WebKit.WKUserScript
 import platform.WebKit.WKUserScriptInjectionTime
@@ -29,6 +31,8 @@ class IosVkCaptchaResolver(
         suspendCancellableCoroutine { continuation ->
             val configuration = WKWebViewConfiguration()
             val userContentController = WKUserContentController()
+            val messageHandler = CaptchaMessageHandler()
+            userContentController.addScriptMessageHandler(messageHandler, "vkCaptcha")
             userContentController.addUserScript(
                 WKUserScript(
                     source = VkCaptchaResolverConfig.SUCCESS_TOKEN_HOOK,
@@ -48,6 +52,7 @@ class IosVkCaptchaResolver(
             fun cleanup() {
                 webView.stopLoading()
                 webView.navigationDelegate = null
+                userContentController.removeScriptMessageHandlerForName("vkCaptcha")
                 webView.removeFromSuperview()
             }
 
@@ -64,6 +69,8 @@ class IosVkCaptchaResolver(
                 cleanup()
                 continuation.resume(token)
             }
+
+            messageHandler.onToken = ::finish
 
             fun pollToken() {
                 if (completed) return
@@ -126,6 +133,17 @@ class IosVkCaptchaResolver(
             didFinishNavigation: WKNavigation?
         ) {
             onPageFinished?.invoke()
+        }
+    }
+
+    private class CaptchaMessageHandler : NSObject(), WKScriptMessageHandlerProtocol {
+        var onToken: ((String) -> Unit)? = null
+
+        override fun userContentController(
+            userContentController: WKUserContentController,
+            didReceiveScriptMessage: WKScriptMessage
+        ) {
+            (didReceiveScriptMessage.body as? String)?.let { onToken?.invoke(it) }
         }
     }
 
