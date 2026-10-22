@@ -19,7 +19,8 @@ class VkApiSource(
     override suspend fun authenticate(
         login: String,
         password: String,
-        captchaResolver: VkCaptchaResolver
+        captchaResolver: VkCaptchaResolver,
+        validationResolver: VkValidationResolver
     ): Result<ApiResponse, DataError.Remote> {
         var successToken: String? = null
         var validationCode: String? = null
@@ -58,7 +59,7 @@ class VkApiSource(
                                 when (val validationResult = requestValidationCode(apiError)) {
                                     is Result.Error -> return Result.Error(validationResult.error)
                                     is Result.Success -> {
-                                        validationCode = VkValidationResolver.resolve(apiError)
+                                        validationCode = validationResolver.resolve(apiError)
                                     }
                                 }
                             }

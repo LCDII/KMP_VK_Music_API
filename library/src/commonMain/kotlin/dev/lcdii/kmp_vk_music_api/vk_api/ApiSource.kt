@@ -7,7 +7,8 @@ interface ApiSource {
     suspend fun authenticate(
         login: String,
         password: String,
-        captchaResolver: VkCaptchaResolver
+        captchaResolver: VkCaptchaResolver,
+        validationResolver: VkValidationResolver
     ): Result<ApiResponse, DataError.Remote>
     suspend fun getProfileInfo(): Result<ApiResponse, DataError.Remote>
     suspend fun getUsersAudioCount(userId: Int): Result<ApiResponse, DataError.Remote>

@@ -14,7 +14,8 @@ object IosAuth {
         return KoinPlatformTools.defaultContext().get().get<ApiSource>().authenticate(
             login = login,
             password = password,
-            captchaResolver = IosVkCaptchaResolver(uiViewController)
+            captchaResolver = IosVkCaptchaResolver(uiViewController),
+            validationResolver = IosVkValidationResolver
         )
     }
 }

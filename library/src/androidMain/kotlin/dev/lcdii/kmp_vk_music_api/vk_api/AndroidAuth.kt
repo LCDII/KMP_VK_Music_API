@@ -14,7 +14,8 @@ object AndroidAuth {
         return KoinPlatformTools.defaultContext().get().get<ApiSource>().authenticate(
             login = login,
             password = password,
-            captchaResolver = AndroidVkCaptchaResolver(activity)
+            captchaResolver = AndroidVkCaptchaResolver(activity),
+            validationResolver = AndroidVkValidationResolver(activity)
         )
     }
 }

@@ -12,7 +12,8 @@ object JvmAuth {
         return KoinPlatformTools.defaultContext().get().get<ApiSource>().authenticate(
             login = login,
             password = password,
-            captchaResolver = JvmVkCaptchaResolver()
+            captchaResolver = JvmVkCaptchaResolver,
+            validationResolver = ConsoleVkValidationResolver
         )
     }
 }
