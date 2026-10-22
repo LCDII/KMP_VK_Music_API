@@ -24,6 +24,7 @@ class VkApiSource(
     ): Result<ApiResponse, DataError.Remote> {
         var successToken: String? = null
         var validationCode: String? = null
+        var validationError: VkApiError.TextError? = null
 
         while (true) {
             val request = VkApiRequest.Authenticate(
@@ -56,12 +57,24 @@ class VkApiSource(
                             }
 
                             TextErrorType.NEED_VALIDATION -> {
+                                validationError = apiError
                                 when (val validationResult = requestValidationCode(apiError)) {
                                     is Result.Error -> return Result.Error(validationResult.error)
                                     is Result.Success -> {
                                         validationCode = validationResolver.resolve(apiError)
                                     }
                                 }
+                            }
+
+                            TextErrorType.INVALID_REQUEST -> {
+                                val previousError = validationError
+                                    ?: return Result.Error(result.error)
+                                validationCode = validationResolver.resolve(
+                                    previousError.copy(
+                                        description = apiError.description
+                                            ?: "Invalid validation code"
+                                    )
+                                )
                             }
 
                             else -> return Result.Error(result.error)

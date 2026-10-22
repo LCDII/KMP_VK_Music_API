@@ -10,11 +10,24 @@ internal object VkCaptchaResolverConfig {
 
     const val SUCCESS_TOKEN_HOOK = """
         (() => {
-            window.__vkSuccessToken = null;
+            if (window.__vkCaptchaHookInstalled) return;
+            window.__vkCaptchaHookInstalled = true;
+            window.__vkSuccessToken = window.__vkSuccessToken || null;
 
             const saveToken = (data) => {
-                if (data && data.response && data.response.success_token) {
-                    window.__vkSuccessToken = data.response.success_token;
+                const token = data && (
+                    data.success_token ||
+                    (data.response && data.response.success_token)
+                );
+                if (token) {
+                    window.__vkSuccessToken = token;
+                    if (window.AndroidCaptchaBridge) {
+                        window.AndroidCaptchaBridge.onSuccess(String(token));
+                    }
+                    if (window.webkit && window.webkit.messageHandlers &&
+                        window.webkit.messageHandlers.vkCaptcha) {
+                        window.webkit.messageHandlers.vkCaptcha.postMessage(String(token));
+                    }
                 }
             };
 
