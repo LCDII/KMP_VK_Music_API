@@ -1,13 +1,17 @@
 package dev.lcdii.kmp_vk_music_api
 
 import android.app.Activity
+import android.graphics.Color
 import android.os.Bundle
 import android.text.InputType
+import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
+import dev.lcdii.kmp_vk_music_api.di.platformModule
 import dev.lcdii.kmp_vk_music_api.di.vkApiModule
 import dev.lcdii.kmp_vk_music_api.vk_api.AndroidAuth
 import dev.lcdii.kmp_vk_music_api.vk_api.core.Result
@@ -28,39 +32,93 @@ class AndroidAuthTestActivity : Activity() {
 
         if (GlobalContext.getOrNull() == null) {
             startKoin {
-                modules(vkApiModule)
+                modules(platformModule, vkApiModule)
             }
         }
 
+        val density = resources.displayMetrics.density
+        fun dp(value: Int): Int = (value * density).toInt()
+
+        // Верхний отступ с учётом статус-бара + запас
+        val statusBarHeight = run {
+            val id = resources.getIdentifier("status_bar_height", "dimen", "android")
+            if (id > 0) resources.getDimensionPixelSize(id) else dp(24)
+        }
+        val topPadding = statusBarHeight + dp(48)
+
+        val loginLabel = TextView(this).apply {
+            text = "VK login"
+            setTextColor(Color.BLACK)
+            textSize = 16f
+            setPadding(0, 0, 0, dp(4))
+        }
         val loginInput = EditText(this).apply {
-            hint = "VK login"
+            hint = "Введите логин"
             inputType = InputType.TYPE_CLASS_TEXT
+            setTextColor(Color.BLACK)
+            setHintTextColor(Color.GRAY)
+            setBackgroundColor(Color.WHITE)
+            minHeight = dp(56)
+            setPadding(dp(12), dp(12), dp(12), dp(12))
+            textSize = 16f
         }
 
+        val passwordLabel = TextView(this).apply {
+            text = "VK password"
+            setTextColor(Color.BLACK)
+            textSize = 16f
+            setPadding(0, dp(16), 0, dp(4))
+        }
         val passwordInput = EditText(this).apply {
-            hint = "VK password"
+            hint = "Введите пароль"
             inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+            setTextColor(Color.BLACK)
+            setHintTextColor(Color.GRAY)
+            setBackgroundColor(Color.WHITE)
+            minHeight = dp(56)
+            setPadding(dp(12), dp(12), dp(12), dp(12))
+            textSize = 16f
         }
 
         val authenticateButton = Button(this).apply {
             text = "Authenticate"
+            isAllCaps = false
+            setPadding(dp(12), dp(12), dp(12), dp(12))
         }
 
         val resultText = TextView(this).apply {
             text = "Enter credentials"
-            setPadding(0, 24, 0, 0)
+            setTextColor(Color.BLACK)
+            textSize = 14f
+            setPadding(0, dp(24), 0, 0)
         }
 
         val content = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(32, 32, 32, 32)
+            gravity = Gravity.TOP
+            setBackgroundColor(Color.parseColor("#EEEEEE"))
+            // ВАЖНО: верхний отступ = статус-бар + запас, чтобы первое поле было видно
+            setPadding(dp(24), topPadding, dp(24), dp(24))
+            addView(loginLabel, inputLayoutParams())
             addView(loginInput, inputLayoutParams())
+            addView(passwordLabel, inputLayoutParams())
             addView(passwordInput, inputLayoutParams())
             addView(authenticateButton, inputLayoutParams())
             addView(resultText, inputLayoutParams())
         }
 
-        setContentView(content)
+        val scroll = ScrollView(this).apply {
+            setBackgroundColor(Color.parseColor("#EEEEEE"))
+            fitsSystemWindows = true
+            addView(
+                content,
+                ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+            )
+        }
+        setContentView(scroll)
 
         authenticateButton.setOnClickListener {
             val login = loginInput.text.toString().trim()
@@ -80,7 +138,6 @@ class AndroidAuthTestActivity : Activity() {
                         is Result.Success -> {
                             resultText.text = "Success\nToken: ${TokenKeeper.token ?: "not saved"}"
                         }
-
                         is Result.Error -> {
                             resultText.text = "Authorization error:\n${result.error}"
                         }
@@ -102,5 +159,7 @@ class AndroidAuthTestActivity : Activity() {
     private fun inputLayoutParams() = LinearLayout.LayoutParams(
         ViewGroup.LayoutParams.MATCH_PARENT,
         ViewGroup.LayoutParams.WRAP_CONTENT
-    )
+    ).apply {
+        bottomMargin = (8 * resources.displayMetrics.density).toInt()
+    }
 }

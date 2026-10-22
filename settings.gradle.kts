@@ -32,3 +32,4 @@ plugins {
 }
 
 include(":library")
+include(":androidTestApp")
