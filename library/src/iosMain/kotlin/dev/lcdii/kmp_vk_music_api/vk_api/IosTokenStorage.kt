@@ -1,0 +1,19 @@
+package dev.lcdii.kmp_vk_music_api.vk_api
+
+class IosTokenStorage: TokenStorage {
+    override fun saveToken(token: String) {
+        TODO("Not yet implemented")
+    }
+
+    override fun getToken(): String? {
+        TODO("Not yet implemented")
+    }
+
+    override fun clearToken() {
+        TODO("Not yet implemented")
+    }
+
+    override fun replaceToken(token: String) {
+        TODO("Not yet implemented")
+    }
+}
