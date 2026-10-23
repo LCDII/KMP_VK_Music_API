@@ -2,7 +2,6 @@ package dev.lcdii.kmp_vk_music_api.vk_api
 
 import dev.lcdii.kmp_vk_music_api.vk_api.core.DataError
 import dev.lcdii.kmp_vk_music_api.vk_api.core.Result
-import dev.lcdii.kmp_vk_music_api.vk_api.core.TokenKeeper
 import dev.lcdii.kmp_vk_music_api.vk_api.data.safeCall
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
@@ -14,7 +13,8 @@ import kotlinx.serialization.json.Json
 class VkApiSource(
     private val httpClient: HttpClient,
     private val appClient: AppClient,
-    private val json: Json
+    private val json: Json,
+    private val tokenStorage: TokenStorage
 ): ApiSource {
     override suspend fun authenticate(
         login: String,
@@ -40,7 +40,7 @@ class VkApiSource(
                 executeAuthenticate(request)
             }) {
                 is Result.Success -> {
-                    TokenKeeper.token = result.data.accessToken
+                    tokenStorage.saveToken(result.data.accessToken)
                     return Result.Success(result.data)
                 }
 
@@ -137,7 +137,7 @@ class VkApiSource(
                 for ((key, value) in request.headers) {
                     header(key, value)
                 }
-                TokenKeeper.token?.let { parameter("access_token", it) }
+                tokenStorage.getToken()?.let { parameter("access_token", it) }
             }
         }
     }
@@ -155,7 +155,7 @@ class VkApiSource(
                     header(key, value)
                 }
                 parameter("owner_id", request.parameters.ownerId)
-                TokenKeeper.token?.let { parameter("access_token", it) }
+                tokenStorage.getToken()?.let { parameter("access_token", it) }
             }
         }
     }
@@ -185,7 +185,7 @@ class VkApiSource(
                 parameter("offset", request.parameters.offset)
                 parameter("album_id", request.parameters.playlistAttributes?.playlistId)
                 parameter("access_key", request.parameters.playlistAttributes?.accessKey)
-                TokenKeeper.token?.let { parameter("access_token", it) }
+                tokenStorage.getToken()?.let { parameter("access_token", it) }
             }
         }
     }
@@ -211,7 +211,7 @@ class VkApiSource(
                 parameter("owner_id", request.parameters.ownerId)
                 parameter("count", request.parameters.count)
                 parameter("offset", request.parameters.offset)
-                TokenKeeper.token?.let { parameter("access_token", it) }
+                tokenStorage.getToken()?.let { parameter("access_token", it) }
             }
         }
     }
@@ -239,7 +239,7 @@ class VkApiSource(
                 parameter("offset", request.parameters.offset)
                 parameter("sort", request.parameters.sort)
                 parameter("autocomplete", request.parameters.autocomplete)
-                TokenKeeper.token?.let { parameter("access_token", it) }
+                tokenStorage.getToken()?.let { parameter("access_token", it) }
             }
         }
     }
@@ -265,7 +265,7 @@ class VkApiSource(
                 parameter("q", request.parameters.query)
                 parameter("count", request.parameters.count)
                 parameter("offset", request.parameters.offset)
-                TokenKeeper.token?.let { parameter("access_token", it) }
+                tokenStorage.getToken()?.let { parameter("access_token", it) }
             }
         }
     }
