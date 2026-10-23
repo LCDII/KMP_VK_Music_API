@@ -14,8 +14,8 @@ import android.widget.TextView
 import dev.lcdii.kmp_vk_music_api.di.platformModule
 import dev.lcdii.kmp_vk_music_api.di.vkApiModule
 import dev.lcdii.kmp_vk_music_api.vk_api.AndroidAuth
+import dev.lcdii.kmp_vk_music_api.vk_api.TokenStorage
 import dev.lcdii.kmp_vk_music_api.vk_api.core.Result
-import dev.lcdii.kmp_vk_music_api.vk_api.core.TokenKeeper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -136,7 +136,7 @@ class AndroidAuthTestActivity : Activity() {
                 try {
                     when (val result = AndroidAuth.authenticate(this@AndroidAuthTestActivity, login, password)) {
                         is Result.Success -> {
-                            resultText.text = "Success\nToken: ${TokenKeeper.token ?: "not saved"}"
+                            resultText.text = "Success\nToken: ${GlobalContext.get().get<TokenStorage>().getToken() ?: "not saved"}"
                         }
                         is Result.Error -> {
                             resultText.text = "Authorization error:\n${result.error}"
