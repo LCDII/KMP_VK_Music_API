@@ -188,12 +188,8 @@ data class AlbumResponse(
 sealed interface VkApiResponse: ApiResponse {
     @Serializable
     data class AuthResponse(
-        @SerialName("access_token")
-        val accessToken: String,
-        @SerialName("expires_in")
-        val expiresIn: Int? = null,
         @SerialName("user_id")
-        val userId: Int? = null
+        val userId: Int
     ) : VkApiResponse
 
     @Serializable

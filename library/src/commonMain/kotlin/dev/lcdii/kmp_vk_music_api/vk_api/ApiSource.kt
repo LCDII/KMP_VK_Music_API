@@ -4,7 +4,7 @@ import dev.lcdii.kmp_vk_music_api.vk_api.core.DataError
 import dev.lcdii.kmp_vk_music_api.vk_api.core.Result
 
 interface ApiSource {
-    suspend fun authenticate(
+    suspend fun auth(
         login: String,
         password: String,
         captchaResolver: VkCaptchaResolver,

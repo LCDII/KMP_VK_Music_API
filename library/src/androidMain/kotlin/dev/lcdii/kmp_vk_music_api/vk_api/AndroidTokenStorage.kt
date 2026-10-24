@@ -4,7 +4,7 @@ import android.content.Context
 
 
 class AndroidTokenStorage(private val context: Context): TokenStorage{
-    override fun saveToken(token: String) {
+    override fun saveToken(token: String, userId: Int) {
         TODO("Not yet implemented")
     }
 
@@ -12,11 +12,15 @@ class AndroidTokenStorage(private val context: Context): TokenStorage{
         TODO("Not yet implemented")
     }
 
+    override fun getUserId(): Int? {
+        TODO("Not yet implemented")
+    }
+
     override fun clearToken() {
         TODO("Not yet implemented")
     }
 
-    override fun replaceToken(token: String) {
+    override fun replaceToken(token: String, userId: Int) {
         TODO("Not yet implemeanted")
     }
 }
