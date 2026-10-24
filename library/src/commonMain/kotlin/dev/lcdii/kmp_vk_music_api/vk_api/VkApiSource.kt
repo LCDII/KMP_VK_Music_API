@@ -8,7 +8,17 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.http.appendPathSegments
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+
+@Serializable
+private data class AuthPayload(
+    @SerialName("access_token")
+    val accessToken: String,
+    @SerialName("user_id")
+    val userId: Int
+)
 
 class VkApiSource(
     private val httpClient: HttpClient,
@@ -16,12 +26,18 @@ class VkApiSource(
     private val json: Json,
     private val tokenStorage: TokenStorage
 ): ApiSource {
-    override suspend fun authenticate(
+    override suspend fun auth(
         login: String,
         password: String,
         captchaResolver: VkCaptchaResolver,
         validationResolver: VkValidationResolver
     ): Result<ApiResponse, DataError.Remote> {
+        val storedToken = tokenStorage.getToken()
+        val storedUserId = tokenStorage.getUserId()
+        if (storedToken != null && storedUserId != null) {
+            return Result.Success(VkApiResponse.AuthResponse(userId = storedUserId))
+        }
+
         var successToken: String? = null
         var validationCode: String? = null
         var validationError: VkApiError.TextError? = null
@@ -36,12 +52,14 @@ class VkApiSource(
                 headers = mapOf("User-Agent" to appClient.userAgent)
             )
 
-            when (val result = safeCall<VkApiResponse.AuthResponse>(json) {
+            when (val result = safeCall<AuthPayload>(json) {
                 executeAuthenticate(request)
             }) {
                 is Result.Success -> {
-                    tokenStorage.saveToken(result.data.accessToken)
-                    return Result.Success(result.data)
+                    tokenStorage.saveToken(result.data.accessToken, result.data.userId)
+                    return Result.Success(
+                        VkApiResponse.AuthResponse(userId = result.data.userId)
+                    )
                 }
 
                 is Result.Error -> {
