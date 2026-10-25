@@ -26,6 +26,17 @@ class VkApiSource(
     private val json: Json,
     private val tokenStorage: TokenStorage
 ): ApiSource {
+    override suspend fun getUserId(): Result<Int, DataError.Remote> {
+        val token = tokenStorage.getToken()
+        val userId = tokenStorage.getUserId()
+
+        return if (token != null && userId != null) {
+            Result.Success(userId)
+        } else {
+            Result.Error(DataError.Remote.NotAuthorized)
+        }
+    }
+
     override suspend fun auth(
         login: String,
         password: String,

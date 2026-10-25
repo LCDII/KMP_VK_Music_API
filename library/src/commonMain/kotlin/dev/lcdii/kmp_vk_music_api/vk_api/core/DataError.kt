@@ -10,6 +10,7 @@ sealed interface DataError : Error {
         data object Server : Remote
         data object Serialization : Remote
         data object Unknown : Remote
+        data object NotAuthorized : Remote
 
         data class Api(
             val error: VkApiError
