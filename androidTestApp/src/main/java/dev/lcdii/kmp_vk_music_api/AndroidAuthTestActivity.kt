@@ -11,10 +11,10 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
-import dev.lcdii.kmp_vk_music_api.di.platformModule
 import dev.lcdii.kmp_vk_music_api.di.vkApiModule
 import dev.lcdii.kmp_vk_music_api.vk_api.AndroidAuth
-import dev.lcdii.kmp_vk_music_api.vk_api.TokenStorage
+import dev.lcdii.kmp_vk_music_api.vk_api.ApiSource
+import dev.lcdii.kmp_vk_music_api.vk_api.VkApiResponse
 import dev.lcdii.kmp_vk_music_api.vk_api.core.Result
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,6 +22,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.koin.core.context.GlobalContext
+import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 
 class AndroidAuthTestActivity : Activity() {
@@ -32,7 +33,8 @@ class AndroidAuthTestActivity : Activity() {
 
         if (GlobalContext.getOrNull() == null) {
             startKoin {
-                modules(platformModule, vkApiModule)
+                androidContext(applicationContext)
+                modules(vkApiModule)
             }
         }
 
@@ -120,6 +122,23 @@ class AndroidAuthTestActivity : Activity() {
         }
         setContentView(scroll)
 
+        scope.launch {
+            try {
+                when (val userIdResult = GlobalContext.get().get<ApiSource>().getUserId()) {
+                    is Result.Success -> {
+                        loginInput.isEnabled = false
+                        passwordInput.isEnabled = false
+                        authenticateButton.isEnabled = false
+                        resultText.text = "Already authorized\nuser_id: ${userIdResult.data}"
+                    }
+
+                    is Result.Error -> Unit
+                }
+            } catch (_: Throwable) {
+                resultText.text = "Not authorized"
+            }
+        }
+
         authenticateButton.setOnClickListener {
             val login = loginInput.text.toString().trim()
             val password = passwordInput.text.toString()
@@ -134,9 +153,10 @@ class AndroidAuthTestActivity : Activity() {
 
             scope.launch {
                 try {
-                    when (val result = AndroidAuth.authenticate(this@AndroidAuthTestActivity, login, password)) {
+                    when (val result = AndroidAuth.auth(this@AndroidAuthTestActivity, login, password)) {
                         is Result.Success -> {
-                            resultText.text = "Success\nToken: ${GlobalContext.get().get<TokenStorage>().getToken() ?: "not saved"}"
+                            val authResponse = result.data as? VkApiResponse.AuthResponse
+                            resultText.text = "Success\nuser_id: ${authResponse?.userId ?: "not returned"}"
                         }
                         is Result.Error -> {
                             resultText.text = "Authorization error:\n${result.error}"

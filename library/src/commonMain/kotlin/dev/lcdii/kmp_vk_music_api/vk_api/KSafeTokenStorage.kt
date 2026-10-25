@@ -5,31 +5,25 @@ import eu.anifantakis.lib.ksafe.KSafe
 class KSafeTokenStorage(
     private val ksafe: KSafe
 ): TokenStorage {
-    override fun saveToken(token: String, userId: Int) {
-        ksafe.putDirect("access_token", token)
-        ksafe.putDirect("user_id", userId)
+    override suspend fun saveToken(token: String, userId: Int) {
+        ksafe.put("access_token", token)
+        ksafe.put("user_id", userId)
     }
 
-    override fun getToken(): String? {
-        return ksafe.getDirect<String?>(
-            key = "access_token",
-            defaultValue = null
-        )
+    override suspend fun getToken(): String? {
+        return ksafe.get("access_token", null as String?)
     }
 
-    override fun getUserId(): Int? {
-        return ksafe.getDirect<Int?>(
-            key = "user_id",
-            defaultValue = null
-        )
+    override suspend fun getUserId(): Int? {
+        return ksafe.get("user_id", null as Int?)
     }
 
-    override fun clearToken() {
-        ksafe.deleteDirect("access_token")
-        ksafe.deleteDirect("user_id")
+    override suspend fun clearToken() {
+        ksafe.delete("access_token")
+        ksafe.delete("user_id")
     }
 
-    override fun replaceToken(token: String, userId: Int) {
+    override suspend fun replaceToken(token: String, userId: Int) {
         saveToken(token, userId)
     }
 }

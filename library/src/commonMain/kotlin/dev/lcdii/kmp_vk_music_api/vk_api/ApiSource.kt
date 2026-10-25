@@ -10,6 +10,7 @@ interface ApiSource {
         captchaResolver: VkCaptchaResolver,
         validationResolver: VkValidationResolver
     ): Result<ApiResponse, DataError.Remote>
+    suspend fun getUserId(): Result<Int, DataError.Remote>
     suspend fun getProfileInfo(): Result<ApiResponse, DataError.Remote>
     suspend fun getUsersAudioCount(userId: Int): Result<ApiResponse, DataError.Remote>
     suspend fun getUsersAudio(
