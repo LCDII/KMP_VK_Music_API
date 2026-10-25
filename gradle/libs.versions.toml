@@ -32,7 +32,6 @@ selenium-java = { module = "org.seleniumhq.selenium:selenium-java", version.ref 
 ksafe = {module = "eu.anifantakis:ksafe", version.ref = "ksafe"}
 
 [plugins]
-androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
