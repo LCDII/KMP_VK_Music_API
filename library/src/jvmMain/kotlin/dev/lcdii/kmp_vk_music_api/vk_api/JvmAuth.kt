@@ -1,21 +1,26 @@
 package dev.lcdii.kmp_vk_music_api.vk_api
 
-import dev.lcdii.kmp_vk_music_api.vk_api.core.DataError
-import dev.lcdii.kmp_vk_music_api.vk_api.core.Result
-import org.koin.mp.KoinPlatformTools
+import dev.lcdii.kmp_vk_music_api.core.DataError
+import dev.lcdii.kmp_vk_music_api.core.Result
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.ApiResponse
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.ApiSource
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.VkCaptchaResolver
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.VkValidationResolver
 
-class JvmAuth(
+public class JvmAuth(
     private val apiSource: ApiSource
 ) {
-    suspend fun auth(
+    public suspend fun auth(
         login: String,
-        password: String
+        password: String,
+        captchaResolver: VkCaptchaResolver?,
+        validationResolver: VkValidationResolver?
     ): Result<ApiResponse, DataError.Remote> {
         return apiSource.auth(
             login = login,
             password = password,
-            captchaResolver = JvmVkCaptchaResolver,
-            validationResolver = ConsoleVkValidationResolver
+            captchaResolver = captchaResolver ?: JvmVkCaptchaResolver,
+            validationResolver = validationResolver ?: ConsoleVkValidationResolver
         )
     }
 }

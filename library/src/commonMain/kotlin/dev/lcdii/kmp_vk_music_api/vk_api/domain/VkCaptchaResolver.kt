@@ -1,7 +1,7 @@
-package dev.lcdii.kmp_vk_music_api.vk_api
+package dev.lcdii.kmp_vk_music_api.vk_api.domain
 
-interface VkCaptchaResolver {
-    suspend fun resolve(redirectUri: String): String
+public interface VkCaptchaResolver {
+    public suspend fun resolve(redirectUri: String): String
 }
 
 internal object VkCaptchaResolverConfig {

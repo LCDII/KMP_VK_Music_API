@@ -7,7 +7,7 @@ import io.ktor.client.engine.okhttp.OkHttp
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
-actual val platformModule: Module
+internal actual val platformVkApiModule: Module
     get() = module {
         single<HttpClientEngine> { OkHttp.create() }
         single<KSafe> { KSafe() }

@@ -1,5 +1,7 @@
 package dev.lcdii.kmp_vk_music_api.vk_api
 
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.VkCaptchaResolver
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.VkCaptchaResolverConfig
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.suspendCancellableCoroutine
 import platform.Foundation.NSURL
@@ -23,10 +25,10 @@ import platform.darwin.NSObject
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-@OptIn(ExperimentalForeignApi::class)
-class IosVkCaptchaResolver(
+internal class IosVkCaptchaResolver(
     private val uiViewController: UIViewController
 ): VkCaptchaResolver {
+    @OptIn(ExperimentalForeignApi::class)
     override suspend fun resolve(redirectUri: String): String =
         suspendCancellableCoroutine { continuation ->
             val configuration = WKWebViewConfiguration()

@@ -1,9 +1,9 @@
 package dev.lcdii.kmp_vk_music_api.components.responses.audio
 
-import dev.lcdii.kmp_vk_music_api.vk_api.PhotoResponse
-import dev.lcdii.kmp_vk_music_api.vk_api.SongAlbumResponse
-import dev.lcdii.kmp_vk_music_api.vk_api.SongResponse
-import dev.lcdii.kmp_vk_music_api.vk_api.VkApiResponse
+import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.PhotoResponse
+import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.SongAlbumResponse
+import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.SongResponse
+import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.VkApiResponse
 import kotlin.time.Instant
 
 val EXPECTED_GET = VkApiResponse.AudioGet(

@@ -1,31 +1,32 @@
-package dev.lcdii.kmp_vk_music_api.vk_api
+package dev.lcdii.kmp_vk_music_api.vk_api.data.dto
 
-import dev.lcdii.kmp_vk_music_api.vk_api.components.AUDIO_COUNT_URL
-import dev.lcdii.kmp_vk_music_api.vk_api.components.AUDIO_GET_URL
-import dev.lcdii.kmp_vk_music_api.vk_api.components.AUDIO_PLAYLIST_GET_URL
-import dev.lcdii.kmp_vk_music_api.vk_api.components.AUDIO_SEARCH_PLAYLIST_URL
-import dev.lcdii.kmp_vk_music_api.vk_api.components.AUDIO_SEARCH_URL
-import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_AUDIO_AUTOCOMPLETE_MODE
-import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_AUDIO_COUNT
-import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_AUDIO_OFFSET
-import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_AUDIO_SORT_MODE
-import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_PLAYLIST_COUNT
-import dev.lcdii.kmp_vk_music_api.vk_api.components.DEFAULT_PLAYLIST_OFFSET
-import dev.lcdii.kmp_vk_music_api.vk_api.components.PROFILE_INFO_URL
+import dev.lcdii.kmp_vk_music_api.core.AUDIO_COUNT_URL
+import dev.lcdii.kmp_vk_music_api.core.AUDIO_GET_URL
+import dev.lcdii.kmp_vk_music_api.core.AUDIO_PLAYLIST_GET_URL
+import dev.lcdii.kmp_vk_music_api.core.AUDIO_SEARCH_PLAYLIST_URL
+import dev.lcdii.kmp_vk_music_api.core.AUDIO_SEARCH_URL
+import dev.lcdii.kmp_vk_music_api.core.DEFAULT_AUDIO_AUTOCOMPLETE_MODE
+import dev.lcdii.kmp_vk_music_api.core.DEFAULT_AUDIO_COUNT
+import dev.lcdii.kmp_vk_music_api.core.DEFAULT_AUDIO_OFFSET
+import dev.lcdii.kmp_vk_music_api.core.DEFAULT_AUDIO_SORT_MODE
+import dev.lcdii.kmp_vk_music_api.core.DEFAULT_PLAYLIST_COUNT
+import dev.lcdii.kmp_vk_music_api.core.DEFAULT_PLAYLIST_OFFSET
+import dev.lcdii.kmp_vk_music_api.core.PROFILE_INFO_URL
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.AppClient
 
-enum class HttpMethod {
+internal enum class HttpMethod {
     GET,
     POST
 }
 
-interface VkApiRequestParameters
+internal interface VkApiRequestParameters
 
-data class PlaylistAttributes(
-    val playlistId: Int,
-    val accessKey: String
+public class PlaylistAttributes(
+    public val playlistId: Int,
+    public val accessKey: String
 )
 
-sealed interface VkApiRequest {
+internal sealed interface VkApiRequest {
     val method: HttpMethod
     val path: String
     val headers: Map<String, String>

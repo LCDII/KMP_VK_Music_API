@@ -1,21 +1,26 @@
 package dev.lcdii.kmp_vk_music_api.vk_api
 
 import platform.UIKit.UIViewController
-import dev.lcdii.kmp_vk_music_api.vk_api.core.DataError
-import dev.lcdii.kmp_vk_music_api.vk_api.core.Result
-import org.koin.mp.KoinPlatformTools
+import dev.lcdii.kmp_vk_music_api.core.DataError
+import dev.lcdii.kmp_vk_music_api.core.Result
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.ApiResponse
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.ApiSource
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.VkCaptchaResolver
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.VkValidationResolver
 
-class IosAuth(
+public class IosAuth(
     private val apiSource: ApiSource
 ) {
-    suspend fun auth(
+    public suspend fun auth(
+        uiViewController: UIViewController,
         login: String,
         password: String,
-        uiViewController: UIViewController
+        captchaResolver: VkCaptchaResolver?,
+        validationResolver: VkValidationResolver?
     ): Result<ApiResponse, DataError.Remote> =apiSource.auth(
             login = login,
             password = password,
-            captchaResolver = IosVkCaptchaResolver(uiViewController),
-            validationResolver = IosVkValidationResolver
+            captchaResolver = captchaResolver ?: IosVkCaptchaResolver(uiViewController),
+            validationResolver = validationResolver ?: IosVkValidationResolver
         )
 }
