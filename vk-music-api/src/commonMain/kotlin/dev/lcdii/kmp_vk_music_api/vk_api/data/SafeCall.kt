@@ -75,7 +75,6 @@ internal suspend inline fun <reified T> responseToResult(
     }
 }
 
-@PublishedApi
 internal fun parseVkApiError(root: JsonObject): VkApiError? {
     val error = root["error"] ?: return null
 

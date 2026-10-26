@@ -2,7 +2,6 @@ package dev.lcdii.kmp_vk_music_api.vk_api.domain
 
 import dev.lcdii.kmp_vk_music_api.core.DataError
 import dev.lcdii.kmp_vk_music_api.core.Result
-import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.PlaylistAttributes
 
 public interface ApiSource {
     public suspend fun auth(

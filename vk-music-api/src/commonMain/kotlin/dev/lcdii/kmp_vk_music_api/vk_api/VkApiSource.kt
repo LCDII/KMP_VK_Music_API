@@ -4,9 +4,14 @@ import dev.lcdii.kmp_vk_music_api.core.DataError
 import dev.lcdii.kmp_vk_music_api.core.Result
 import dev.lcdii.kmp_vk_music_api.core.TextErrorType
 import dev.lcdii.kmp_vk_music_api.core.VkApiError
+import dev.lcdii.kmp_vk_music_api.vk_api.data.HttpClientFactory
+import dev.lcdii.kmp_vk_music_api.vk_api.data.KSafeTokenStorage
+import dev.lcdii.kmp_vk_music_api.vk_api.data.VkApiJson
+import dev.lcdii.kmp_vk_music_api.vk_api.data.VkMobileAppClient
+import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.AuthPayload
 import dev.lcdii.kmp_vk_music_api.vk_api.domain.TokenStorage
-import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.PlaylistAttributes
-import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.VkApiRequest
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.PlaylistAttributes
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.VkApiRequest
 import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.VkApiResponse
 import dev.lcdii.kmp_vk_music_api.vk_api.data.safeCall
 import dev.lcdii.kmp_vk_music_api.vk_api.domain.ApiResponse
@@ -14,27 +19,19 @@ import dev.lcdii.kmp_vk_music_api.vk_api.domain.ApiSource
 import dev.lcdii.kmp_vk_music_api.vk_api.domain.AppClient
 import dev.lcdii.kmp_vk_music_api.vk_api.domain.VkCaptchaResolver
 import dev.lcdii.kmp_vk_music_api.vk_api.domain.VkValidationResolver
+import eu.anifantakis.lib.ksafe.KSafe
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.http.appendPathSegments
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
-@Serializable
-private data class AuthPayload(
-    @SerialName("access_token")
-    val accessToken: String,
-    @SerialName("user_id")
-    val userId: Int
-)
 
 public class VkApiSource(
     private val httpClient: HttpClient,
-    private val appClient: AppClient,
-    private val json: Json,
+    private val appClient: AppClient = VkMobileAppClient,
+    private val json: Json = VkApiJson,
     private val tokenStorage: TokenStorage
 ): ApiSource {
     override suspend fun getUserId(): Result<Int, DataError.Remote> {

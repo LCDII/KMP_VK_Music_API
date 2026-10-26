@@ -32,3 +32,5 @@ plugins {
 }
 
 include(":vk-music-api")
+include(":examples:androidApp")
+include(":examples:jvmApp")

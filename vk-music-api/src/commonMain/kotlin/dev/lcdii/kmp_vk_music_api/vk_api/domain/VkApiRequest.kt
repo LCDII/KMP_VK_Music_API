@@ -1,4 +1,4 @@
-package dev.lcdii.kmp_vk_music_api.vk_api.data.dto
+package dev.lcdii.kmp_vk_music_api.vk_api.domain
 
 import dev.lcdii.kmp_vk_music_api.core.AUDIO_COUNT_URL
 import dev.lcdii.kmp_vk_music_api.core.AUDIO_GET_URL
@@ -12,7 +12,6 @@ import dev.lcdii.kmp_vk_music_api.core.DEFAULT_AUDIO_SORT_MODE
 import dev.lcdii.kmp_vk_music_api.core.DEFAULT_PLAYLIST_COUNT
 import dev.lcdii.kmp_vk_music_api.core.DEFAULT_PLAYLIST_OFFSET
 import dev.lcdii.kmp_vk_music_api.core.PROFILE_INFO_URL
-import dev.lcdii.kmp_vk_music_api.vk_api.domain.AppClient
 
 internal enum class HttpMethod {
     GET,
