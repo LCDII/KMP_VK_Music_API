@@ -31,17 +31,16 @@ class AndroidAuthTestActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (GlobalContext.getOrNull() == null) {
-            startKoin {
+
+        val koin = startKoin {
                 androidContext(applicationContext)
                 modules(vkApiModule)
-            }
-        }
+            }.koin
+
 
         val density = resources.displayMetrics.density
         fun dp(value: Int): Int = (value * density).toInt()
 
-        // Верхний отступ с учётом статус-бара + запас
         val statusBarHeight = run {
             val id = resources.getIdentifier("status_bar_height", "dimen", "android")
             if (id > 0) resources.getDimensionPixelSize(id) else dp(24)
@@ -124,7 +123,7 @@ class AndroidAuthTestActivity : Activity() {
 
         scope.launch {
             try {
-                when (val userIdResult = GlobalContext.get().get<ApiSource>().getUserId()) {
+                when (val userIdResult = koin.get<ApiSource>().getUserId()) {
                     is Result.Success -> {
                         loginInput.isEnabled = false
                         passwordInput.isEnabled = false
@@ -153,7 +152,7 @@ class AndroidAuthTestActivity : Activity() {
 
             scope.launch {
                 try {
-                    when (val result = AndroidAuth.auth(this@AndroidAuthTestActivity, login, password)) {
+                    when (val result = koin.get<AndroidAuth>().auth(this@AndroidAuthTestActivity, login, password)) {
                         is Result.Success -> {
                             val authResponse = result.data as? VkApiResponse.AuthResponse
                             resultText.text = "Success\nuser_id: ${authResponse?.userId ?: "not returned"}"

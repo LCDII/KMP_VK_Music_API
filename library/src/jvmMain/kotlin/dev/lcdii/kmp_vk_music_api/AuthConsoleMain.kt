@@ -3,16 +3,22 @@ package dev.lcdii.kmp_vk_music_api
 import dev.lcdii.kmp_vk_music_api.di.vkApiModule
 import dev.lcdii.kmp_vk_music_api.vk_api.JvmAuth
 import dev.lcdii.kmp_vk_music_api.vk_api.ApiSource
+import dev.lcdii.kmp_vk_music_api.vk_api.TokenStorage
 import dev.lcdii.kmp_vk_music_api.vk_api.VkApiResponse
+import dev.lcdii.kmp_vk_music_api.vk_api.VkApiSource
 import dev.lcdii.kmp_vk_music_api.vk_api.core.Result
 import kotlinx.coroutines.runBlocking
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
+import org.koin.dsl.module
 
 fun main() = runBlocking {
-    startKoin {
+    val koin = startKoin {
         modules(vkApiModule)
-    }
+        module {
+            single<VkApiSource> { VkApiSource (get(), get(), get(), get()) }
+        }
+    }.koin
 
     try {
         try {
@@ -26,7 +32,7 @@ fun main() = runBlocking {
                 is Result.Error -> Unit
             }
         } catch (_: Throwable) {
-            // Continue with interactive authorization when storage is unavailable.
+
         }
 
         print("VK login: ")
@@ -35,7 +41,7 @@ fun main() = runBlocking {
         print("VK password: ")
         val password = readln()
 
-        when (val result = JvmAuth.auth(login, password)) {
+        when (val result = koin.get<JvmAuth>().auth(login, password)) {
             is Result.Success -> {
                 val authResponse = result.data as? VkApiResponse.AuthResponse
                 println("Authorization successful")
