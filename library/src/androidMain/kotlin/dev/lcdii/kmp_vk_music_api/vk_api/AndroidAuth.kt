@@ -15,8 +15,8 @@ public class AndroidAuth(
         activity: Activity,
         login: String,
         password: String,
-        captchaResolver: VkCaptchaResolver?,
-        validationResolver: VkValidationResolver?
+        captchaResolver: VkCaptchaResolver? = null,
+        validationResolver: VkValidationResolver? = null
     ): Result<ApiResponse, DataError.Remote> = apiSource.auth(
             login = login,
             password = password,
