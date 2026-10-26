@@ -1,11 +1,13 @@
-package dev.lcdii.kmp_vk_music_api.vk_api
+package dev.lcdii.kmp_vk_music_api.vk_api.data.dto
 
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.ApiResponse
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.descriptors.element
 import kotlinx.serialization.encoding.Decoder
@@ -17,7 +19,7 @@ import kotlin.time.Instant
 
 //NOT ful responses
 @Serializable
-data class PhotoResponse(
+public data class PhotoResponse(
     val width: Int,
     val height: Int,
     val id: String,
@@ -38,19 +40,19 @@ data class PhotoResponse(
 )
 
 @Serializable
-data class CityResponse(
+public data class CityResponse(
     val id: Int,
     val title: String
 )
 
 @Serializable
-data class CountryResponse(
+public data class CountryResponse(
     val id: Int,
     val title: String
 )
 
 @Serializable
-data class SongAlbumResponse(
+public data class SongAlbumResponse(
     val id: Int,
     val title: String,
     @SerialName("owner_id")
@@ -62,13 +64,13 @@ data class SongAlbumResponse(
     val mainColor: String,
 )
 @Serializable
-data class SongArtistResponse(
+public data class SongArtistResponse(
     val name: String,
     val domain: String? = null,
     val id: String? = null
 )
 @Serializable
-data class SongResponse(
+public data class SongResponse(
     val id : Int,
     @SerialName("owner_id")
     val ownerId: Int,
@@ -107,8 +109,8 @@ data class SongResponse(
     @SerialName("release_audio_id")
     val releaseAudioId: String? = null
 ) {
-    object InstantSerializer : KSerializer<Instant>{
-        override val descriptor = PrimitiveSerialDescriptor("InstantFromSeconds",
+    public object InstantSerializer : KSerializer<Instant>{
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("InstantFromSeconds",
             PrimitiveKind.LONG)
 
         override fun deserialize(decoder: Decoder): Instant =
@@ -120,7 +122,7 @@ data class SongResponse(
     }
 }
 @Serializable
-data class PermissionsResponse(
+public data class PermissionsResponse(
     val play: Boolean,
     val share: Boolean,
     val edit: Boolean,
@@ -130,12 +132,12 @@ data class PermissionsResponse(
     val boomDownload: Boolean
 )
 @Serializable
-data class GenreResponse(
+public data class GenreResponse(
     val id: Int,
     val name: String
 )
 @Serializable
-data class AlbumResponse(
+public data class AlbumResponse(
     val id: Int,
     @SerialName("owner_id")
     val ownerId: Int,
@@ -172,8 +174,8 @@ data class AlbumResponse(
     @SerialName("main_artists")
     val mainArtists: List<SongArtistResponse>? = null
     ) {
-        object InstantSerializer : KSerializer<Instant>{
-            override val descriptor = PrimitiveSerialDescriptor("InstantFromSeconds",
+        public object InstantSerializer : KSerializer<Instant>{
+            override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("InstantFromSeconds",
                 PrimitiveKind.LONG)
 
             override fun deserialize(decoder: Decoder): Instant =
@@ -185,22 +187,22 @@ data class AlbumResponse(
         }
 }
 
-sealed interface VkApiResponse: ApiResponse {
+public sealed interface VkApiResponse: ApiResponse {
     @Serializable
-    data class AuthResponse(
+    public data class AuthResponse(
         @SerialName("user_id")
         val userId: Int
     ) : VkApiResponse
 
     @Serializable
-    data class ValidatePhoneResponse(
+    public data class ValidatePhoneResponse(
         val type: String? = null,
         val sid: String? = null,
         val delay: Int? = null
     ) : VkApiResponse
 
     @Serializable
-    data class ProfileInfo(
+    public data class ProfileInfo(
         val id: Int,
         @SerialName("first_name")
         val firstName: String,
@@ -222,47 +224,47 @@ sealed interface VkApiResponse: ApiResponse {
 
     //Audio Responses
     @Serializable(with= AudioGetCount.CountSerializer::class)
-    data class AudioGetCount(
+    public data class AudioGetCount(
         val count : Int,
     ) : VkApiResponse{
-        object CountSerializer: KSerializer<VkApiResponse.AudioGetCount>{
-            override val descriptor = buildClassSerialDescriptor("AudioGetCount") {
+        public object CountSerializer: KSerializer<AudioGetCount>{
+            override val descriptor: SerialDescriptor = buildClassSerialDescriptor("AudioGetCount") {
                 element<Int>("count")
             }
             override fun serialize(
                 encoder: Encoder,
                 value: AudioGetCount
-            ) = encoder.encodeInt(value.count)
+            ): Unit = encoder.encodeInt(value.count)
             override fun deserialize(decoder: Decoder): AudioGetCount =
                 AudioGetCount(decoder.decodeInt())
 
         }
     }
     @Serializable
-    data class AudioGet(
+    public data class AudioGet(
         val count: Int,
         val items: List<SongResponse> = emptyList()
         //TODO profiles
     ) : VkApiResponse
     @Serializable
-    data class AudioSearch(
+    public data class AudioSearch(
         val count: Int,
         val items: List<SongResponse> = emptyList()
     ) : VkApiResponse
     @Serializable(with =  AudioGetById.AudioGetByIdSerializer::class)
-    data class AudioGetById(
+    public data class AudioGetById(
         val items: List<SongResponse> = emptyList()
     ) : VkApiResponse {
-        object AudioGetByIdSerializer : KSerializer<VkApiResponse.AudioGetById> {
-            override val descriptor = ListSerializer(SongResponse.serializer()).descriptor
+        public object AudioGetByIdSerializer : KSerializer<AudioGetById> {
+            override val descriptor: SerialDescriptor = ListSerializer(SongResponse.serializer()).descriptor
 
-            override fun deserialize(decoder: Decoder): VkApiResponse.AudioGetById {
+            override fun deserialize(decoder: Decoder): AudioGetById {
                 val list =
                     decoder.decodeSerializableValue(ListSerializer(SongResponse.serializer()))
-                return VkApiResponse.AudioGetById(items = list)
+                return AudioGetById(items = list)
             }
 
-            override fun serialize(encoder: Encoder, value: VkApiResponse.AudioGetById) {
+            override fun serialize(encoder: Encoder, value: AudioGetById) {
                 encoder.encodeSerializableValue(
                     ListSerializer(SongResponse.serializer()),
                     value.items
@@ -271,7 +273,7 @@ sealed interface VkApiResponse: ApiResponse {
         }
     }
     @Serializable
-    data class AudioGetPlayLists(
+    public data class AudioGetPlayLists(
         val count: Int,
         val items: List<AlbumResponse> = emptyList(),
         @SerialName("next_from")
@@ -280,20 +282,20 @@ sealed interface VkApiResponse: ApiResponse {
     ) : VkApiResponse{}
 
     @Serializable
-    data class AudioSearchPlaylists(
+    public data class AudioSearchPlaylists(
         val count: Int,
         val items: List<AlbumResponse> = emptyList(),
 
     ) : VkApiResponse
     @Serializable
-    data class AudioSearchAlbums(
+    public data class AudioSearchAlbums(
         val count: Int,
         val items: List<AlbumResponse>
     ) : VkApiResponse
 
 }
 
-inline fun <reified T: VkApiResponse> Json.decodeResponse(jsonString: String): T =
+public inline fun <reified T: VkApiResponse> Json.decodeResponse(jsonString: String): T =
     this.decodeFromJsonElement<T>(
         this.parseToJsonElement(jsonString).jsonObject["response"] ?:
         error("No Response Object")

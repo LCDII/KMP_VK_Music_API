@@ -8,12 +8,14 @@ import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.webkit.JavascriptInterface
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.VkCaptchaResolver
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.VkCaptchaResolverConfig
 import org.json.JSONTokener
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-class AndroidVkCaptchaResolver(
+internal class AndroidVkCaptchaResolver(
     private val activity: Activity
 ): VkCaptchaResolver {
     override suspend fun resolve(redirectUri: String): String =

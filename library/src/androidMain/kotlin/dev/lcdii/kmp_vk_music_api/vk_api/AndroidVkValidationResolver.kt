@@ -6,11 +6,13 @@ import android.content.DialogInterface
 import android.text.InputType
 import android.widget.EditText
 import android.widget.LinearLayout
+import dev.lcdii.kmp_vk_music_api.core.VkApiError
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.VkValidationResolver
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-class AndroidVkValidationResolver(
+internal class AndroidVkValidationResolver(
     private val activity: Activity
 ) : VkValidationResolver {
     override suspend fun resolve(error: VkApiError.TextError): String =

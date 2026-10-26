@@ -2,8 +2,8 @@ package dev.lcdii.kmp_vk_music_api
 
 import com.goncalossilva.resources.Resource
 import dev.lcdii.kmp_vk_music_api.components.responses.audio.*
-import dev.lcdii.kmp_vk_music_api.vk_api.VkApiResponse
-import dev.lcdii.kmp_vk_music_api.vk_api.decodeResponse
+import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.VkApiResponse
+import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.decodeResponse
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals

@@ -1,9 +1,9 @@
 package dev.lcdii.kmp_vk_music_api.vk_api.data
 
-import dev.lcdii.kmp_vk_music_api.vk_api.TextErrorType
-import dev.lcdii.kmp_vk_music_api.vk_api.VkApiError
-import dev.lcdii.kmp_vk_music_api.vk_api.core.DataError
-import dev.lcdii.kmp_vk_music_api.vk_api.core.Result
+import dev.lcdii.kmp_vk_music_api.core.TextErrorType
+import dev.lcdii.kmp_vk_music_api.core.VkApiError
+import dev.lcdii.kmp_vk_music_api.core.DataError
+import dev.lcdii.kmp_vk_music_api.core.Result
 import io.ktor.client.network.sockets.SocketTimeoutException
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
@@ -18,7 +18,7 @@ import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonPrimitive
 
-suspend inline fun <reified T> safeCall(
+internal suspend inline fun <reified T> safeCall(
     json: Json,
     crossinline execute: suspend () -> HttpResponse
 ): Result<T, DataError.Remote> {
@@ -36,7 +36,7 @@ suspend inline fun <reified T> safeCall(
     return responseToResult(response, json)
 }
 
-suspend inline fun <reified T> responseToResult(
+internal suspend inline fun <reified T> responseToResult(
     response: HttpResponse,
     json: Json
 ): Result<T, DataError.Remote> {

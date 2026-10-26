@@ -8,6 +8,7 @@ plugins {
 }
 
 kotlin {
+    explicitApi()
     android {
         namespace = "dev.lcdii.kmp_vk_music_api"
         compileSdk = libs.versions.android.compileSdk.get().toInt()

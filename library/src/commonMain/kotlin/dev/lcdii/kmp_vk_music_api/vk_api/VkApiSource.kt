@@ -1,8 +1,19 @@
 package dev.lcdii.kmp_vk_music_api.vk_api
 
-import dev.lcdii.kmp_vk_music_api.vk_api.core.DataError
-import dev.lcdii.kmp_vk_music_api.vk_api.core.Result
+import dev.lcdii.kmp_vk_music_api.core.DataError
+import dev.lcdii.kmp_vk_music_api.core.Result
+import dev.lcdii.kmp_vk_music_api.core.TextErrorType
+import dev.lcdii.kmp_vk_music_api.core.VkApiError
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.TokenStorage
+import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.PlaylistAttributes
+import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.VkApiRequest
+import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.VkApiResponse
 import dev.lcdii.kmp_vk_music_api.vk_api.data.safeCall
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.ApiResponse
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.ApiSource
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.AppClient
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.VkCaptchaResolver
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.VkValidationResolver
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -20,7 +31,7 @@ private data class AuthPayload(
     val userId: Int
 )
 
-class VkApiSource(
+public class VkApiSource(
     private val httpClient: HttpClient,
     private val appClient: AppClient,
     private val json: Json,

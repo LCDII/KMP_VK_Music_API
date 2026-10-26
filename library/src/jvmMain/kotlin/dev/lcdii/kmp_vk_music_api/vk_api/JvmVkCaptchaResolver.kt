@@ -1,5 +1,7 @@
 package dev.lcdii.kmp_vk_music_api.vk_api
 
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.VkCaptchaResolver
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.VkCaptchaResolverConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.openqa.selenium.JavascriptExecutor
@@ -7,7 +9,7 @@ import org.openqa.selenium.PageLoadStrategy
 import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
 
-object JvmVkCaptchaResolver: VkCaptchaResolver {
+internal object JvmVkCaptchaResolver: VkCaptchaResolver {
     override suspend fun resolve(redirectUri: String): String = withContext(Dispatchers.IO) {
         val options = ChromeOptions().apply {
             setBinary(System.getProperty("vk.brave.binary", BRAVE_BINARY))

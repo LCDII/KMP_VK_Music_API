@@ -1,8 +1,9 @@
-package dev.lcdii.kmp_vk_music_api.vk_api
+package dev.lcdii.kmp_vk_music_api.vk_api.data
 
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.TokenStorage
 import eu.anifantakis.lib.ksafe.KSafe
 
-class KSafeTokenStorage(
+internal class KSafeTokenStorage(
     private val ksafe: KSafe
 ): TokenStorage {
     override suspend fun saveToken(token: String, userId: Int) {

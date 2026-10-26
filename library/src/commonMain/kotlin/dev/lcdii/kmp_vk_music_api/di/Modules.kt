@@ -1,24 +1,22 @@
 package dev.lcdii.kmp_vk_music_api.di
 
-import dev.lcdii.kmp_vk_music_api.vk_api.ApiSource
-import dev.lcdii.kmp_vk_music_api.vk_api.AppClient
-import dev.lcdii.kmp_vk_music_api.vk_api.TokenStorage
-import dev.lcdii.kmp_vk_music_api.vk_api.KSafeTokenStorage
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.ApiSource
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.AppClient
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.TokenStorage
+import dev.lcdii.kmp_vk_music_api.vk_api.data.KSafeTokenStorage
 import dev.lcdii.kmp_vk_music_api.vk_api.VkApiSource
-import dev.lcdii.kmp_vk_music_api.vk_api.VkMobileAppClient
+import dev.lcdii.kmp_vk_music_api.vk_api.data.VkMobileAppClient
 import dev.lcdii.kmp_vk_music_api.vk_api.data.HttpClientFactory
 import io.ktor.client.HttpClient
 import kotlinx.serialization.json.Json
 import org.koin.core.module.Module
-import org.koin.core.module.dsl.singleOf
-import org.koin.dsl.bind
 import org.koin.dsl.module
 
-expect val platformModule: Module
+internal expect val platformVkApiModule: Module
 
 
-val vkApiModule: Module = module {
-    includes(platformModule)
+internal val vkApiModule: Module = module {
+    includes(platformVkApiModule)
 
     single {
         Json {
@@ -31,3 +29,4 @@ val vkApiModule: Module = module {
     single<ApiSource> { VkApiSource(get(), get(), get(), get()) }
     single<TokenStorage> { KSafeTokenStorage(get()) }
 }
+

@@ -1,9 +1,9 @@
 package dev.lcdii.kmp_vk_music_api.components.responses.audio
 
-import dev.lcdii.kmp_vk_music_api.vk_api.AlbumResponse
-import dev.lcdii.kmp_vk_music_api.vk_api.PermissionsResponse
-import dev.lcdii.kmp_vk_music_api.vk_api.PhotoResponse
-import dev.lcdii.kmp_vk_music_api.vk_api.VkApiResponse
+import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.AlbumResponse
+import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.PermissionsResponse
+import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.PhotoResponse
+import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.VkApiResponse
 import kotlin.collections.emptyList
 import kotlin.time.Instant
 
