@@ -16,7 +16,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":library"))
+    implementation(project(":vk-music-api"))
     implementation(libs.koin.android)
     implementation(libs.kotlinx.coroutines.android)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
