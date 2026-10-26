@@ -1,20 +1,19 @@
 package dev.lcdii.kmp_vk_music_api
 
-import dev.lcdii.kmp_vk_music_api.di.vkApiModule
+import dev.lcdii.kmp_vk_music_api.di.VkApiKoinModules
 import dev.lcdii.kmp_vk_music_api.vk_api.JvmAuth
-import dev.lcdii.kmp_vk_music_api.vk_api.ApiSource
-import dev.lcdii.kmp_vk_music_api.vk_api.TokenStorage
-import dev.lcdii.kmp_vk_music_api.vk_api.VkApiResponse
 import dev.lcdii.kmp_vk_music_api.vk_api.VkApiSource
-import dev.lcdii.kmp_vk_music_api.vk_api.core.Result
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.ApiSource
 import kotlinx.coroutines.runBlocking
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
+import dev.lcdii.kmp_vk_music_api.core.Result
+import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.VkApiResponse
 
-fun main() = runBlocking {
+public fun main(): Unit = runBlocking {
     val koin = startKoin {
-        modules(vkApiModule)
+        modules(VkApiKoinModules.modules)
         module {
             single<VkApiSource> { VkApiSource (get(), get(), get(), get()) }
         }
@@ -22,7 +21,7 @@ fun main() = runBlocking {
 
     try {
         try {
-            when (val userIdResult = org.koin.core.context.GlobalContext.get().get<ApiSource>().getUserId()) {
+            when (val userIdResult = koin.get<VkApiSource>().getUserId()) {
                 is Result.Success -> {
                     println("Already authorized")
                     println("user_id: ${userIdResult.data}")

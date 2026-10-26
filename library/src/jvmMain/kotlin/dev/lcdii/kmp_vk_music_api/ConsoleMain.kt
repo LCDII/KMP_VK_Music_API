@@ -1,21 +1,20 @@
 package dev.lcdii.kmp_vk_music_api
 
+import dev.lcdii.kmp_vk_music_api.core.onError
+import dev.lcdii.kmp_vk_music_api.core.onSuccess
+import dev.lcdii.kmp_vk_music_api.di.VkApiKoinModules
 import dev.lcdii.kmp_vk_music_api.di.vkApiModule
-import dev.lcdii.kmp_vk_music_api.vk_api.ApiSource
-import dev.lcdii.kmp_vk_music_api.vk_api.TokenStorage
 import dev.lcdii.kmp_vk_music_api.vk_api.VkApiSource
-import dev.lcdii.kmp_vk_music_api.vk_api.core.onError
-import dev.lcdii.kmp_vk_music_api.vk_api.core.onSuccess
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
 
-fun main(args: Array<String>): Unit = runBlocking {
+public fun main(args: Array<String>): Unit = runBlocking {
     val userId = 336591731
 
     val koin = startKoin {
-        modules(vkApiModule)
+        modules(VkApiKoinModules.modules)
         module {
             single<VkApiSource> { VkApiSource (get(), get(), get(), get()) }
         }

@@ -11,19 +11,18 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
-import dev.lcdii.kmp_vk_music_api.di.vkApiModule
+import dev.lcdii.kmp_vk_music_api.di.VkApiKoinModules
 import dev.lcdii.kmp_vk_music_api.vk_api.AndroidAuth
-import dev.lcdii.kmp_vk_music_api.vk_api.ApiSource
-import dev.lcdii.kmp_vk_music_api.vk_api.VkApiResponse
-import dev.lcdii.kmp_vk_music_api.vk_api.core.Result
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.ApiSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import org.koin.core.context.GlobalContext
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
+import dev.lcdii.kmp_vk_music_api.core.Result
+import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.VkApiResponse
 
 class AndroidAuthTestActivity : Activity() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -34,7 +33,7 @@ class AndroidAuthTestActivity : Activity() {
 
         val koin = startKoin {
                 androidContext(applicationContext)
-                modules(vkApiModule)
+                modules(VkApiKoinModules.modules)
             }.koin
 
 
@@ -152,7 +151,9 @@ class AndroidAuthTestActivity : Activity() {
 
             scope.launch {
                 try {
-                    when (val result = koin.get<AndroidAuth>().auth(this@AndroidAuthTestActivity, login, password)) {
+                    when (val result = koin.get<AndroidAuth>().auth(
+                        this@AndroidAuthTestActivity, login, password
+                    )) {
                         is Result.Success -> {
                             val authResponse = result.data as? VkApiResponse.AuthResponse
                             resultText.text = "Success\nuser_id: ${authResponse?.userId ?: "not returned"}"

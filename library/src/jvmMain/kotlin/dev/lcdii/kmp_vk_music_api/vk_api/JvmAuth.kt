@@ -13,8 +13,8 @@ public class JvmAuth(
     public suspend fun auth(
         login: String,
         password: String,
-        captchaResolver: VkCaptchaResolver?,
-        validationResolver: VkValidationResolver?
+        captchaResolver: VkCaptchaResolver? = null,
+        validationResolver: VkValidationResolver? = null
     ): Result<ApiResponse, DataError.Remote> {
         return apiSource.auth(
             login = login,
