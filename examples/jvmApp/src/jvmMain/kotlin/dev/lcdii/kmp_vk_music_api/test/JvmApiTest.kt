@@ -45,6 +45,7 @@ fun main(): Unit = runBlocking {
             .onSuccess { response ->
                 response.items.forEach { song ->
                     println(song.title)
+                    println(song.url)
                 }
             }
             .onError { error ->
