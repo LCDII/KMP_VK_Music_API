@@ -1,5 +1,20 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
+val javafxVersion = libs.versions.javafx.get()
+val javafxBase = libs.openjfx.base.get()
+val javafxGraphics = libs.openjfx.graphics.get()
+val javafxWeb = libs.openjfx.web.get()
+val javafxControls = libs.openjfx.controls.get()
+
+val javafxClassifier = when {
+    System.getProperty("os.name").startsWith("Windows") -> "win"
+    System.getProperty("os.name").startsWith("Mac") && System.getProperty("os.arch") == "aarch64" -> "mac-aarch64"
+    System.getProperty("os.name").startsWith("Mac") -> "mac"
+    System.getProperty("os.name").startsWith("Linux") && System.getProperty("os.arch") == "aarch64" -> "linux-aarch64"
+    System.getProperty("os.name").startsWith("Linux") -> "linux"
+    else -> error("Unsupported JavaFX platform: ${System.getProperty("os.name")} ${System.getProperty("os.arch")}")
+}
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidMultiplatformLibrary)
@@ -46,6 +61,8 @@ kotlin {
             implementation(libs.ktor.client.logging)
             implementation(libs.ktor.client.auth)
             implementation(libs.ksafe)
+
+            implementation(libs.vk.captcha)
         }
 
         androidMain.dependencies {
@@ -55,7 +72,11 @@ kotlin {
 
         jvmMain.dependencies {
             implementation(libs.ktor.client.okhttp)
-            implementation(libs.selenium.java)
+            implementation("${javafxBase.group}:${javafxBase.name}:$javafxVersion:$javafxClassifier")
+            implementation("${javafxGraphics.group}:${javafxGraphics.name}:$javafxVersion:$javafxClassifier")
+            implementation("${javafxWeb.group}:${javafxWeb.name}:$javafxVersion:$javafxClassifier")
+            implementation("${javafxControls.group}:${javafxControls.name}:$javafxVersion:$javafxClassifier")
+            implementation("org.openjfx:javafx-media:21:${javafxClassifier}")
         }
 
         iosMain.dependencies {

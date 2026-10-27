@@ -151,6 +151,7 @@ class AndroidAuthTestActivity : Activity() {
 
             scope.launch {
                 try {
+
                     when (val result = koin.get<AndroidAuth>().auth(
                         this@AndroidAuthTestActivity, login, password
                     )) {
@@ -172,6 +173,7 @@ class AndroidAuthTestActivity : Activity() {
     }
 
     override fun onDestroy() {
+
         scope.cancel()
         super.onDestroy()
     }
