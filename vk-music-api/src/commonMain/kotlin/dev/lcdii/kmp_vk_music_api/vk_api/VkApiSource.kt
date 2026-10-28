@@ -47,7 +47,7 @@ public class VkApiSource(
         password: String,
         captchaResolver: VkCaptchaResolver,
         validationResolver: VkValidationResolver
-    ): Result<ApiResponse, DataError.Remote> {
+    ): Result<ApiResponse, DataError> {
         val storedToken = tokenStorage.getToken()
         val storedUserId = tokenStorage.getUserId()
         if (storedToken != null && storedUserId != null) {
@@ -87,7 +87,10 @@ public class VkApiSource(
                             TextErrorType.NEED_CAPTCHA -> {
                                 val redirectUri = apiError.redirectUri
                                     ?: return Result.Error(result.error)
-                                successToken = captchaResolver.resolve(redirectUri)
+                                when (val captchaResult = captchaResolver.resolve(redirectUri)) {
+                                    is Result.Success -> successToken = captchaResult.data
+                                    is Result.Error -> return Result.Error(captchaResult.error)
+                                }
                             }
 
                             TextErrorType.NEED_VALIDATION -> {

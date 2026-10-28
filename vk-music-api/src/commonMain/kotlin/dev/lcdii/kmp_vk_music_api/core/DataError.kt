@@ -13,5 +13,17 @@ public sealed interface DataError : Error {
         public data class Api(
             val error: VkApiError
         ) : Remote
+
+        public data class CaptchaFailed(
+            val msg: String
+        ) : Remote
+
+    }
+
+    public sealed interface Local: DataError {
+        public data class BrowserNotFound(
+            val msg: String
+        ) : Local
+
     }
 }

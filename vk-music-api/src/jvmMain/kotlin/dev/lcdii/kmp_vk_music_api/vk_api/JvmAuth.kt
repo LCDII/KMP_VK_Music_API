@@ -14,12 +14,13 @@ public class JvmAuth(
         login: String,
         password: String,
         captchaResolver: VkCaptchaResolver? = null,
-        validationResolver: VkValidationResolver? = null
-    ): Result<ApiResponse, DataError.Remote> {
+        validationResolver: VkValidationResolver? = null,
+        pathToBrowserForCaptcha: String? = null
+    ): Result<ApiResponse, DataError> {
         return apiSource.auth(
             login = login,
             password = password,
-            captchaResolver = captchaResolver ?: JvmVkCaptchaResolver,
+            captchaResolver = captchaResolver ?: JvmVkCaptchaResolver(pathToBrowserForCaptcha),
             validationResolver = validationResolver ?: ConsoleVkValidationResolver
         )
     }
