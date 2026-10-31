@@ -45,7 +45,7 @@ internal class JvmVkCaptchaResolver(
 
                 token?.let { Result.Success(it) }
                     ?: Result.Error(
-                        DataError.Remote.CaptchaFailed("Captcha token was not returned")
+                        DataError.Remote.CaptchaFailed("Captcha was not solved")
                     )
             } catch (error: CancellationException) {
                 throw error

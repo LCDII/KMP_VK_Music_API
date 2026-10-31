@@ -7,7 +7,6 @@ import platform.UIKit.UIViewController
 
 internal class IosVkCaptchaResolver(
     private val uiViewController: UIViewController
-): VkCaptchaResolver {
-    override suspend fun resolve(redirectUri: String): Result<String, DataError> =
-        Result.Error(DataError.Remote.CaptchaFailed("iOS captcha resolver is not implemented"))
+) : VkCaptchaResolver {
+    override suspend fun resolve(redirectUri: String): Result<String, DataError> = TODO()
 }
