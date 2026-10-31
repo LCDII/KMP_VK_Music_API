@@ -9,7 +9,7 @@ public interface ApiSource {
         password: String,
         captchaResolver: VkCaptchaResolver,
         validationResolver: VkValidationResolver
-    ): Result<ApiResponse, DataError.Remote>
+    ): Result<ApiResponse, DataError>
     public suspend fun getUserId(): Result<Int, DataError.Remote>
     public suspend fun getProfileInfo(): Result<ApiResponse, DataError.Remote>
     public suspend fun getUsersAudioCount(userId: Int): Result<ApiResponse, DataError.Remote>

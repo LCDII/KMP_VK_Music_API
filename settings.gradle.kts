@@ -24,6 +24,9 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
+        maven {
+            url = uri("https://nexus-external.vkteam.ru/repository/maven/")
+        }
     }
 }
 

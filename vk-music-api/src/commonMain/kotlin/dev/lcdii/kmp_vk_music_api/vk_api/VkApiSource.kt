@@ -4,8 +4,6 @@ import dev.lcdii.kmp_vk_music_api.core.DataError
 import dev.lcdii.kmp_vk_music_api.core.Result
 import dev.lcdii.kmp_vk_music_api.core.TextErrorType
 import dev.lcdii.kmp_vk_music_api.core.VkApiError
-import dev.lcdii.kmp_vk_music_api.vk_api.data.HttpClientFactory
-import dev.lcdii.kmp_vk_music_api.vk_api.data.KSafeTokenStorage
 import dev.lcdii.kmp_vk_music_api.vk_api.data.VkApiJson
 import dev.lcdii.kmp_vk_music_api.vk_api.data.VkMobileAppClient
 import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.AuthPayload
@@ -19,7 +17,6 @@ import dev.lcdii.kmp_vk_music_api.vk_api.domain.ApiSource
 import dev.lcdii.kmp_vk_music_api.vk_api.domain.AppClient
 import dev.lcdii.kmp_vk_music_api.vk_api.domain.VkCaptchaResolver
 import dev.lcdii.kmp_vk_music_api.vk_api.domain.VkValidationResolver
-import eu.anifantakis.lib.ksafe.KSafe
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -50,7 +47,7 @@ public class VkApiSource(
         password: String,
         captchaResolver: VkCaptchaResolver,
         validationResolver: VkValidationResolver
-    ): Result<ApiResponse, DataError.Remote> {
+    ): Result<ApiResponse, DataError> {
         val storedToken = tokenStorage.getToken()
         val storedUserId = tokenStorage.getUserId()
         if (storedToken != null && storedUserId != null) {
@@ -90,7 +87,10 @@ public class VkApiSource(
                             TextErrorType.NEED_CAPTCHA -> {
                                 val redirectUri = apiError.redirectUri
                                     ?: return Result.Error(result.error)
-                                successToken = captchaResolver.resolve(redirectUri)
+                                when (val captchaResult = captchaResolver.resolve(redirectUri)) {
+                                    is Result.Success -> successToken = captchaResult.data
+                                    is Result.Error -> return Result.Error(captchaResult.error)
+                                }
                             }
 
                             TextErrorType.NEED_VALIDATION -> {

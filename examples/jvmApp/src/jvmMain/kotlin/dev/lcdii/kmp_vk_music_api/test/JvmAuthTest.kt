@@ -5,6 +5,7 @@ import dev.lcdii.kmp_vk_music_api.di.VkApiKoinModules
 import dev.lcdii.kmp_vk_music_api.vk_api.JvmAuth
 import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.VkApiResponse
 import dev.lcdii.kmp_vk_music_api.vk_api.domain.ApiSource
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.TokenStorage
 import kotlinx.coroutines.runBlocking
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
@@ -48,6 +49,7 @@ fun main(): Unit = runBlocking {
             }
         }
     } finally {
+        koin.get<TokenStorage>().clearToken()
         stopKoin()
     }
 }
