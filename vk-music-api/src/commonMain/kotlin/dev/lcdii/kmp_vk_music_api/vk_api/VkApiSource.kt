@@ -51,7 +51,7 @@ public class VkApiSource(
         password: String,
         captchaResolver: VkCaptchaResolver,
         validationResolver: VkValidationResolver
-    ): Result<ApiResponse, DataError> {
+    ): Result<VkApiResponse.AuthResponse, DataError> {
         val storedToken = tokenStorage.getToken()
         val storedUserId = tokenStorage.getUserId()
         if (storedToken != null && storedUserId != null) {
@@ -314,7 +314,7 @@ public class VkApiSource(
     override suspend fun addAudio(
         ownerId: Int,
         audioId: Int
-    ): Result<ApiResponse, DataError.Remote> {
+    ): Result<VkApiResponse.AddAudioResponse, DataError.Remote> {
         return safeCall<VkApiResponse.AddAudioResponse>(json) {
             val request = VkApiRequest.AddAudio(
                 ownerId = ownerId,
@@ -341,7 +341,7 @@ public class VkApiSource(
         ownerId: Int,
         playlistId: Int,
         audioIds: List<String>
-    ): Result<ApiResponse, DataError.Remote> {
+    ): Result<VkApiResponse.AddAudiosToPlaylistResponse, DataError.Remote> {
         return safeCall<VkApiResponse.AddAudiosToPlaylistResponse>(json) {
             val request = VkApiRequest.AddAudiosToPlaylist(
                 ownerId = ownerId,
@@ -369,7 +369,7 @@ public class VkApiSource(
     override suspend fun deleteAudio(
         ownerId: Int,
         audioId: Int
-    ): Result<ApiResponse, DataError.Remote> {
+    ): Result<VkApiResponse.DeleteAudioResponse, DataError.Remote> {
         return safeCall<VkApiResponse.DeleteAudioResponse>(json) {
             val request = VkApiRequest.DeleteAudio(
                 ownerId = ownerId,
@@ -396,7 +396,7 @@ public class VkApiSource(
         ownerId: Int,
         playlistId: Int,
         audioIds: List<String>
-    ): Result<ApiResponse, DataError.Remote> {
+    ): Result<VkApiResponse.RemoveAudiosFromPlaylistResponse, DataError.Remote> {
         return safeCall<VkApiResponse.RemoveAudiosFromPlaylistResponse>(json) {
             val request = VkApiRequest.RemoveAudiosFromPlaylist(
                 ownerId = ownerId,
@@ -425,7 +425,7 @@ public class VkApiSource(
         ownerId: Int,
         title: String,
         description: String?
-    ): Result<ApiResponse, DataError.Remote> {
+    ): Result<VkApiResponse.CreatePlaylistResponse, DataError.Remote> {
         return safeCall<VkApiResponse.CreatePlaylistResponse>(json) {
             val request = VkApiRequest.CreatePlaylist(
                 ownerId = ownerId,
@@ -453,7 +453,7 @@ public class VkApiSource(
     override suspend fun deletePlaylist(
         ownerId: Int,
         playlistId: Int
-    ): Result<ApiResponse, DataError.Remote> {
+    ): Result<VkApiResponse.DeletePlaylistResponse, DataError.Remote> {
         return safeCall<VkApiResponse.DeletePlaylistResponse>(json) {
             val request = VkApiRequest.DeletePlaylist(
                 ownerId = ownerId,

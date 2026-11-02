@@ -155,7 +155,7 @@ public data class AlbumResponse(
     val genres: List<GenreResponse> = emptyList(),
     @SerialName("is_following")
     val isFollowing: Boolean,
-    val photo: PhotoResponse,
+    val photo: PhotoResponse? = null,
     val permissions: PermissionsResponse,
     @SerialName("subtitle_badge")
     val subtitleBadge: Boolean,
@@ -203,11 +203,12 @@ public abstract class IntResponseSerializer<T>(
     override fun deserialize(decoder: Decoder): T = fromInt(decoder.decodeInt())
 }
 
-public abstract class StringListResponseSerializer<T>( //for response : []
-    private val fromList: (List<String>) -> T,
-    private val toList: (T) -> List<String>
+public abstract class ListResponseSerializer<T, R>( //for response : []
+    private val itemSerializer: KSerializer<R>,
+    private val fromList: (List<R>) -> T,
+    private val toList: (T) -> List<R>
 ) : KSerializer<T> {
-    private val listSerializer = ListSerializer(String.serializer())
+    private val listSerializer = ListSerializer(itemSerializer)
 
     override val descriptor: SerialDescriptor = listSerializer.descriptor
 
@@ -331,11 +332,20 @@ public sealed interface VkApiResponse: ApiResponse {
         )
     }
 
+    @Serializable
+    public data class AddedAudioResponse(
+        @SerialName("audio_id")
+        val audioId: Int,
+        @SerialName("track_code")
+        val trackCode: String? = null
+    )
+
     @Serializable(with = AddAudiosToPlaylistResponse.Serializer::class)
     public data class AddAudiosToPlaylistResponse(
-        val result: List<String>
+        val result: List<AddedAudioResponse>
     ) : VkApiResponse {
-        public object Serializer : StringListResponseSerializer<AddAudiosToPlaylistResponse>(
+        public object Serializer : ListResponseSerializer<AddAudiosToPlaylistResponse, AddedAudioResponse>(
+            itemSerializer = AddedAudioResponse.serializer(),
             fromList = ::AddAudiosToPlaylistResponse,
             toList = { it.result }
         )
