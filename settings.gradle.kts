@@ -24,6 +24,9 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
+        maven {
+            url = uri("https://nexus-external.vkteam.ru/repository/maven/")
+        }
     }
 }
 
@@ -31,4 +34,6 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
-include(":library")
+include(":vk-music-api")
+include(":examples:androidApp")
+include(":examples:jvmApp")
