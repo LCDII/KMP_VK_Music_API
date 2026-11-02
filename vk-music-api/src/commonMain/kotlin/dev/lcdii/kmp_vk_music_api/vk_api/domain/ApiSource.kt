@@ -34,4 +34,31 @@ public interface ApiSource {
         count: Int? = null,
         offset: Int? = null
     ): Result<ApiResponse, DataError.Remote>
+    public suspend fun addAudio(
+        ownerId: Int,
+        audioId: Int
+    ): Result<ApiResponse, DataError.Remote>
+    public suspend fun addAudiosToPlaylist(
+        ownerId: Int,
+        playlistId: Int,
+        audioIds: List<String>
+    ): Result<ApiResponse, DataError.Remote>
+    public suspend fun deleteAudio(
+        ownerId: Int,
+        audioId: Int
+    ): Result<ApiResponse, DataError.Remote>
+    public suspend fun removeAudiosFromPlaylist(
+        ownerId: Int,
+        playlistId: Int,
+        audioIds: List<String>
+    ): Result<ApiResponse, DataError.Remote>
+    public suspend fun createPlaylist(
+        ownerId: Int,
+        title: String,
+        description: String? = null
+    ): Result<ApiResponse, DataError.Remote>
+    public suspend fun deletePlaylist(
+        ownerId: Int,
+        playlistId: Int
+    ): Result<ApiResponse, DataError.Remote>
 }

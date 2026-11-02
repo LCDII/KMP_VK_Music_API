@@ -5,11 +5,10 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import kotlinx.serialization.descriptors.element
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
@@ -187,6 +186,40 @@ public data class AlbumResponse(
         }
 }
 
+public abstract class IntResponseSerializer<T>(
+    private val serialName: String,
+    private val fromInt: (Int) -> T,
+    private val toInt: (T) -> Int
+) : KSerializer<T> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(
+        serialName,
+        PrimitiveKind.INT
+    )
+
+    override fun serialize(encoder: Encoder, value: T) {
+        encoder.encodeInt(toInt(value))
+    }
+
+    override fun deserialize(decoder: Decoder): T = fromInt(decoder.decodeInt())
+}
+
+public abstract class StringListResponseSerializer<T>( //for response : []
+    private val fromList: (List<String>) -> T,
+    private val toList: (T) -> List<String>
+) : KSerializer<T> {
+    private val listSerializer = ListSerializer(String.serializer())
+
+    override val descriptor: SerialDescriptor = listSerializer.descriptor
+
+    override fun serialize(encoder: Encoder, value: T) {
+        encoder.encodeSerializableValue(listSerializer, toList(value))
+    }
+
+    override fun deserialize(decoder: Decoder): T = fromList(
+        decoder.decodeSerializableValue(listSerializer)
+    )
+}
+
 public sealed interface VkApiResponse: ApiResponse {
     @Serializable
     public data class AuthResponse(
@@ -223,22 +256,15 @@ public sealed interface VkApiResponse: ApiResponse {
     ) : VkApiResponse
 
     //Audio Responses
-    @Serializable(with= AudioGetCount.CountSerializer::class)
+    @Serializable(with = AudioGetCount.Serializer::class)
     public data class AudioGetCount(
         val count : Int,
     ) : VkApiResponse{
-        public object CountSerializer: KSerializer<AudioGetCount>{
-            override val descriptor: SerialDescriptor = buildClassSerialDescriptor("AudioGetCount") {
-                element<Int>("count")
-            }
-            override fun serialize(
-                encoder: Encoder,
-                value: AudioGetCount
-            ): Unit = encoder.encodeInt(value.count)
-            override fun deserialize(decoder: Decoder): AudioGetCount =
-                AudioGetCount(decoder.decodeInt())
-
-        }
+        public object Serializer : IntResponseSerializer<AudioGetCount>(
+            serialName = "AudioGetCount",
+            fromInt = ::AudioGetCount,
+            toInt = { it.count }
+        )
     }
     @Serializable
     public data class AudioGet(
@@ -287,11 +313,72 @@ public sealed interface VkApiResponse: ApiResponse {
         val items: List<AlbumResponse> = emptyList(),
 
     ) : VkApiResponse
+
     @Serializable
     public data class AudioSearchAlbums(
         val count: Int,
         val items: List<AlbumResponse>
     ) : VkApiResponse
+
+    @Serializable(with = AddAudioResponse.Serializer::class)
+    public data class AddAudioResponse(
+        val result: Int
+    ) : VkApiResponse {
+        public object Serializer : IntResponseSerializer<AddAudioResponse>(
+            serialName = "AddAudioResponse",
+            fromInt = ::AddAudioResponse,
+            toInt = { it.result }
+        )
+    }
+
+    @Serializable(with = AddAudiosToPlaylistResponse.Serializer::class)
+    public data class AddAudiosToPlaylistResponse(
+        val result: List<String>
+    ) : VkApiResponse {
+        public object Serializer : StringListResponseSerializer<AddAudiosToPlaylistResponse>(
+            fromList = ::AddAudiosToPlaylistResponse,
+            toList = { it.result }
+        )
+    }
+
+    @Serializable(with = DeleteAudioResponse.Serializer::class)
+    public data class DeleteAudioResponse(
+        val result: Int
+    ) : VkApiResponse {
+        public object Serializer : IntResponseSerializer<DeleteAudioResponse>(
+            serialName = "DeleteAudioResponse",
+            fromInt = ::DeleteAudioResponse,
+            toInt = { it.result }
+        )
+    }
+
+    @Serializable(with = RemoveAudiosFromPlaylistResponse.Serializer::class)
+    public data class RemoveAudiosFromPlaylistResponse(
+        val result: Int
+    ) : VkApiResponse {
+        public object Serializer : IntResponseSerializer<RemoveAudiosFromPlaylistResponse>(
+            serialName = "RemoveAudiosFromPlaylistResponse",
+            fromInt = ::RemoveAudiosFromPlaylistResponse,
+            toInt = { it.result }
+        )
+    }
+
+    @Serializable
+    public data class CreatePlaylistResponse(
+        @SerialName("playlist_id")
+        val playlistId: Int
+    ) : VkApiResponse
+
+    @Serializable(with = DeletePlaylistResponse.Serializer::class)
+    public data class DeletePlaylistResponse(
+        val result: Int
+    ) : VkApiResponse {
+        public object Serializer : IntResponseSerializer<DeletePlaylistResponse>(
+            serialName = "DeletePlaylistResponse",
+            fromInt = ::DeletePlaylistResponse,
+            toInt = { it.result }
+        )
+    }
 
 }
 

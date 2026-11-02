@@ -1,8 +1,14 @@
 package dev.lcdii.kmp_vk_music_api.vk_api.domain
 
 import dev.lcdii.kmp_vk_music_api.core.AUDIO_COUNT_URL
+import dev.lcdii.kmp_vk_music_api.core.AUDIO_ADD_TO_PLAYLIST_URL
+import dev.lcdii.kmp_vk_music_api.core.AUDIO_ADD_URL
+import dev.lcdii.kmp_vk_music_api.core.AUDIO_CREATE_PLAYLIST_URL
+import dev.lcdii.kmp_vk_music_api.core.AUDIO_DELETE_PLAYLIST_URL
+import dev.lcdii.kmp_vk_music_api.core.AUDIO_DELETE_URL
 import dev.lcdii.kmp_vk_music_api.core.AUDIO_GET_URL
 import dev.lcdii.kmp_vk_music_api.core.AUDIO_PLAYLIST_GET_URL
+import dev.lcdii.kmp_vk_music_api.core.AUDIO_REMOVE_FROM_PLAYLIST_URL
 import dev.lcdii.kmp_vk_music_api.core.AUDIO_SEARCH_PLAYLIST_URL
 import dev.lcdii.kmp_vk_music_api.core.AUDIO_SEARCH_URL
 import dev.lcdii.kmp_vk_music_api.core.DEFAULT_AUDIO_AUTOCOMPLETE_MODE
@@ -236,5 +242,125 @@ internal sealed interface VkApiRequest {
             ),
             headers = headers
         )
+    }
+
+    data class AddAudio(
+        override val parameters: Parameters,
+        override val headers: Map<String, String> = emptyMap()
+    ) : VkApiRequest {
+        override val method = HttpMethod.POST
+        override val path = AUDIO_ADD_URL
+
+        data class Parameters(
+            val ownerId: Int,
+            val audioId: Int
+        ) : VkApiRequestParameters
+
+        constructor(
+            ownerId: Int,
+            audioId: Int,
+            headers: Map<String, String> = emptyMap()
+        ) : this(Parameters(ownerId, audioId), headers)
+    }
+
+    data class AddAudiosToPlaylist(
+        override val parameters: Parameters,
+        override val headers: Map<String, String> = emptyMap()
+    ) : VkApiRequest {
+        override val method = HttpMethod.POST
+        override val path = AUDIO_ADD_TO_PLAYLIST_URL
+
+        data class Parameters(
+            val ownerId: Int,
+            val playlistId: Int,
+            val audioIds: List<String>
+        ) : VkApiRequestParameters
+
+        constructor(
+            ownerId: Int,
+            playlistId: Int,
+            audioIds: List<String>,
+            headers: Map<String, String> = emptyMap()
+        ) : this(Parameters(ownerId, playlistId, audioIds), headers)
+    }
+
+    data class DeleteAudio(
+        override val parameters: Parameters,
+        override val headers: Map<String, String> = emptyMap()
+    ) : VkApiRequest {
+        override val method = HttpMethod.POST
+        override val path = AUDIO_DELETE_URL
+
+        data class Parameters(
+            val ownerId: Int,
+            val audioId: Int
+        ) : VkApiRequestParameters
+
+        constructor(
+            ownerId: Int,
+            audioId: Int,
+            headers: Map<String, String> = emptyMap()
+        ) : this(Parameters(ownerId, audioId), headers)
+    }
+
+    data class RemoveAudiosFromPlaylist(
+        override val parameters: Parameters,
+        override val headers: Map<String, String> = emptyMap()
+    ) : VkApiRequest {
+        override val method = HttpMethod.POST
+        override val path = AUDIO_REMOVE_FROM_PLAYLIST_URL
+
+        data class Parameters(
+            val ownerId: Int,
+            val playlistId: Int,
+            val audioIds: List<String>
+        ) : VkApiRequestParameters
+
+        constructor(
+            ownerId: Int,
+            playlistId: Int,
+            audioIds: List<String>,
+            headers: Map<String, String> = emptyMap()
+        ) : this(Parameters(ownerId, playlistId, audioIds), headers)
+    }
+
+    data class CreatePlaylist(
+        override val parameters: Parameters,
+        override val headers: Map<String, String> = emptyMap()
+    ) : VkApiRequest {
+        override val method = HttpMethod.POST
+        override val path = AUDIO_CREATE_PLAYLIST_URL
+
+        data class Parameters(
+            val ownerId: Int,
+            val title: String,
+            val description: String? = null
+        ) : VkApiRequestParameters
+
+        constructor(
+            ownerId: Int,
+            title: String,
+            description: String? = null,
+            headers: Map<String, String> = emptyMap()
+        ) : this(Parameters(ownerId, title, description), headers)
+    }
+
+    data class DeletePlaylist(
+        override val parameters: Parameters,
+        override val headers: Map<String, String> = emptyMap()
+    ) : VkApiRequest {
+        override val method = HttpMethod.POST
+        override val path = AUDIO_DELETE_PLAYLIST_URL
+
+        data class Parameters(
+            val ownerId: Int,
+            val playlistId: Int
+        ) : VkApiRequestParameters
+
+        constructor(
+            ownerId: Int,
+            playlistId: Int,
+            headers: Map<String, String> = emptyMap()
+        ) : this(Parameters(ownerId, playlistId), headers)
     }
 }

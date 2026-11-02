@@ -49,7 +49,6 @@ fun main(): Unit = runBlocking {
             }
         }
     } finally {
-        koin.get<TokenStorage>().clearToken()
         stopKoin()
     }
 }

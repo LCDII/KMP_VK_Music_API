@@ -1,8 +1,10 @@
 package dev.lcdii.kmp_vk_music_api.vk_api
 
+import dev.lcdii.kmp_vk_music_api.core.ACCESS_TOKEN_KEY
 import dev.lcdii.kmp_vk_music_api.core.DataError
 import dev.lcdii.kmp_vk_music_api.core.Result
 import dev.lcdii.kmp_vk_music_api.core.TextErrorType
+import dev.lcdii.kmp_vk_music_api.core.USER_AGENT_KEY
 import dev.lcdii.kmp_vk_music_api.core.VkApiError
 import dev.lcdii.kmp_vk_music_api.vk_api.data.VkApiJson
 import dev.lcdii.kmp_vk_music_api.vk_api.data.VkMobileAppClient
@@ -21,7 +23,9 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
+import io.ktor.client.request.forms.submitForm
 import io.ktor.http.appendPathSegments
+import io.ktor.http.parameters
 import kotlinx.serialization.json.Json
 
 
@@ -65,7 +69,7 @@ public class VkApiSource(
                 appClient = appClient,
                 successToken = successToken,
                 code = validationCode,
-                headers = mapOf("User-Agent" to appClient.userAgent)
+                headers = mapOf(USER_AGENT_KEY to appClient.userAgent)
             )
 
             when (val result = safeCall<AuthPayload>(json) {
@@ -150,7 +154,7 @@ public class VkApiSource(
             ?: return Result.Error(DataError.Remote.Api(error))
         val request = VkApiRequest.ValidatePhone(
             sid = sid,
-            headers = mapOf("User-Agent" to appClient.userAgent)
+            headers = mapOf(USER_AGENT_KEY to appClient.userAgent)
         )
 
         return safeCall<VkApiResponse.ValidatePhoneResponse>(json) {
@@ -167,14 +171,14 @@ public class VkApiSource(
     override suspend fun getProfileInfo(): Result<VkApiResponse.ProfileInfo, DataError.Remote> {
         return safeCall<VkApiResponse.ProfileInfo>(json){
             val request = VkApiRequest.GetProfileInfo(
-                headers = mapOf("User-Agent" to appClient.userAgent)
+                headers = mapOf(USER_AGENT_KEY to appClient.userAgent)
             )
             httpClient.get {
                 url.appendPathSegments(request.path)
                 for ((key, value) in request.headers) {
                     header(key, value)
                 }
-                tokenStorage.getToken()?.let { parameter("access_token", it) }
+                tokenStorage.getToken()?.let { parameter(ACCESS_TOKEN_KEY, it) }
             }
         }
     }
@@ -183,7 +187,7 @@ public class VkApiSource(
         return safeCall<VkApiResponse.AudioGetCount>(json){
             val request = VkApiRequest.GetUsersAudioCount(
                 ownerId = userId,
-                headers = mapOf("User-Agent" to appClient.userAgent)
+                headers = mapOf(USER_AGENT_KEY to appClient.userAgent)
             )
 
             httpClient.get {
@@ -192,7 +196,7 @@ public class VkApiSource(
                     header(key, value)
                 }
                 parameter("owner_id", request.parameters.ownerId)
-                tokenStorage.getToken()?.let { parameter("access_token", it) }
+                tokenStorage.getToken()?.let { parameter(ACCESS_TOKEN_KEY, it) }
             }
         }
     }
@@ -209,7 +213,7 @@ public class VkApiSource(
                 count,
                 offset,
                 playlistAttributes,
-                headers = mapOf("User-Agent" to appClient.userAgent)
+                headers = mapOf(USER_AGENT_KEY to appClient.userAgent)
             )
 
             httpClient.get {
@@ -222,7 +226,7 @@ public class VkApiSource(
                 parameter("offset", request.parameters.offset)
                 parameter("album_id", request.parameters.playlistAttributes?.playlistId)
                 parameter("access_key", request.parameters.playlistAttributes?.accessKey)
-                tokenStorage.getToken()?.let { parameter("access_token", it) }
+                tokenStorage.getToken()?.let { parameter(ACCESS_TOKEN_KEY, it) }
             }
         }
     }
@@ -237,7 +241,7 @@ public class VkApiSource(
                 userId,
                 count,
                 offset,
-                headers = mapOf("User-Agent" to appClient.userAgent)
+                headers = mapOf(USER_AGENT_KEY to appClient.userAgent)
             )
 
             httpClient.get {
@@ -248,7 +252,7 @@ public class VkApiSource(
                 parameter("owner_id", request.parameters.ownerId)
                 parameter("count", request.parameters.count)
                 parameter("offset", request.parameters.offset)
-                tokenStorage.getToken()?.let { parameter("access_token", it) }
+                tokenStorage.getToken()?.let { parameter(ACCESS_TOKEN_KEY, it) }
             }
         }
     }
@@ -263,7 +267,7 @@ public class VkApiSource(
                 query,
                 count,
                 offset,
-                headers = mapOf("User-Agent" to appClient.userAgent)
+                headers = mapOf(USER_AGENT_KEY to appClient.userAgent)
             )
 
             httpClient.get {
@@ -276,7 +280,7 @@ public class VkApiSource(
                 parameter("offset", request.parameters.offset)
                 parameter("sort", request.parameters.sort)
                 parameter("autocomplete", request.parameters.autocomplete)
-                tokenStorage.getToken()?.let { parameter("access_token", it) }
+                tokenStorage.getToken()?.let { parameter(ACCESS_TOKEN_KEY, it) }
             }
         }
     }
@@ -291,7 +295,7 @@ public class VkApiSource(
                 query,
                 count,
                 offset,
-                headers = mapOf("User-Agent" to appClient.userAgent)
+                headers = mapOf(USER_AGENT_KEY to appClient.userAgent)
             )
 
             httpClient.get {
@@ -302,9 +306,173 @@ public class VkApiSource(
                 parameter("q", request.parameters.query)
                 parameter("count", request.parameters.count)
                 parameter("offset", request.parameters.offset)
-                tokenStorage.getToken()?.let { parameter("access_token", it) }
+                tokenStorage.getToken()?.let { parameter(ACCESS_TOKEN_KEY, it) }
             }
         }
     }
 
+    override suspend fun addAudio(
+        ownerId: Int,
+        audioId: Int
+    ): Result<ApiResponse, DataError.Remote> {
+        return safeCall<VkApiResponse.AddAudioResponse>(json) {
+            val request = VkApiRequest.AddAudio(
+                ownerId = ownerId,
+                audioId = audioId,
+                headers = mapOf(USER_AGENT_KEY to appClient.userAgent)
+            )
+            val token = tokenStorage.getToken()
+            httpClient.submitForm(
+                url = request.path,
+                formParameters = parameters {
+                    append("owner_id", request.parameters.ownerId.toString())
+                    append("audio_id", request.parameters.audioId.toString())
+                    token?.let { append(ACCESS_TOKEN_KEY, it) }
+                }
+            ) {
+                for ((key, value) in request.headers) {
+                    header(key, value)
+                }
+            }
+        }
+    }
+
+    override suspend fun addAudiosToPlaylist(
+        ownerId: Int,
+        playlistId: Int,
+        audioIds: List<String>
+    ): Result<ApiResponse, DataError.Remote> {
+        return safeCall<VkApiResponse.AddAudiosToPlaylistResponse>(json) {
+            val request = VkApiRequest.AddAudiosToPlaylist(
+                ownerId = ownerId,
+                playlistId = playlistId,
+                audioIds = audioIds,
+                headers = mapOf(USER_AGENT_KEY to appClient.userAgent)
+            )
+            val token = tokenStorage.getToken()
+            httpClient.submitForm(
+                url = request.path,
+                formParameters = parameters {
+                    append("owner_id", request.parameters.ownerId.toString())
+                    append("playlist_id", request.parameters.playlistId.toString())
+                    append("audio_ids", request.parameters.audioIds.joinToString(","))
+                    token?.let { append(ACCESS_TOKEN_KEY, it) }
+                }
+            ) {
+                for ((key, value) in request.headers) {
+                    header(key, value)
+                }
+            }
+        }
+    }
+
+    override suspend fun deleteAudio(
+        ownerId: Int,
+        audioId: Int
+    ): Result<ApiResponse, DataError.Remote> {
+        return safeCall<VkApiResponse.DeleteAudioResponse>(json) {
+            val request = VkApiRequest.DeleteAudio(
+                ownerId = ownerId,
+                audioId = audioId,
+                headers = mapOf(USER_AGENT_KEY to appClient.userAgent)
+            )
+            val token = tokenStorage.getToken()
+            httpClient.submitForm(
+                url = request.path,
+                formParameters = parameters {
+                    append("owner_id", request.parameters.ownerId.toString())
+                    append("audio_id", request.parameters.audioId.toString())
+                    token?.let { append(ACCESS_TOKEN_KEY, it) }
+                }
+            ) {
+                for ((key, value) in request.headers) {
+                    header(key, value)
+                }
+            }
+        }
+    }
+
+    override suspend fun removeAudiosFromPlaylist(
+        ownerId: Int,
+        playlistId: Int,
+        audioIds: List<String>
+    ): Result<ApiResponse, DataError.Remote> {
+        return safeCall<VkApiResponse.RemoveAudiosFromPlaylistResponse>(json) {
+            val request = VkApiRequest.RemoveAudiosFromPlaylist(
+                ownerId = ownerId,
+                playlistId = playlistId,
+                audioIds = audioIds,
+                headers = mapOf(USER_AGENT_KEY to appClient.userAgent)
+            )
+            val token = tokenStorage.getToken()
+            httpClient.submitForm(
+                url = request.path,
+                formParameters = parameters {
+                    append("owner_id", request.parameters.ownerId.toString())
+                    append("playlist_id", request.parameters.playlistId.toString())
+                    append("audio_ids", request.parameters.audioIds.joinToString(","))
+                    token?.let { append(ACCESS_TOKEN_KEY, it) }
+                }
+            ) {
+                for ((key, value) in request.headers) {
+                    header(key, value)
+                }
+            }
+        }
+    }
+
+    override suspend fun createPlaylist(
+        ownerId: Int,
+        title: String,
+        description: String?
+    ): Result<ApiResponse, DataError.Remote> {
+        return safeCall<VkApiResponse.CreatePlaylistResponse>(json) {
+            val request = VkApiRequest.CreatePlaylist(
+                ownerId = ownerId,
+                title = title,
+                description = description,
+                headers = mapOf(USER_AGENT_KEY to appClient.userAgent)
+            )
+            val token = tokenStorage.getToken()
+            httpClient.submitForm(
+                url = request.path,
+                formParameters = parameters {
+                    append("owner_id", request.parameters.ownerId.toString())
+                    append("title", request.parameters.title)
+                    request.parameters.description?.let { append("description", it) }
+                    token?.let { append(ACCESS_TOKEN_KEY, it) }
+                }
+            ) {
+                for ((key, value) in request.headers) {
+                    header(key, value)
+                }
+            }
+        }
+    }
+
+    override suspend fun deletePlaylist(
+        ownerId: Int,
+        playlistId: Int
+    ): Result<ApiResponse, DataError.Remote> {
+        return safeCall<VkApiResponse.DeletePlaylistResponse>(json) {
+            val request = VkApiRequest.DeletePlaylist(
+                ownerId = ownerId,
+                playlistId = playlistId,
+                headers = mapOf(USER_AGENT_KEY to appClient.userAgent)
+            )
+            val token = tokenStorage.getToken()
+            httpClient.submitForm(
+                url = request.path,
+                formParameters = parameters {
+                    append("owner_id", request.parameters.ownerId.toString())
+                    append("playlist_id", request.parameters.playlistId.toString())
+                    token?.let { append(ACCESS_TOKEN_KEY, it) }
+                }
+            ) {
+                for ((key, value) in request.headers) {
+                    header(key, value)
+                }
+            }
+        }
+    }
 }

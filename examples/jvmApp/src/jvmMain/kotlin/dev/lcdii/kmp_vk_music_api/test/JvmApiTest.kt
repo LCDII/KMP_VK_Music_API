@@ -82,6 +82,70 @@ fun main(): Unit = runBlocking {
             .onError { error ->
                 println("Search Playlist request failed: $error")
             }
+
+        val audioOwnerId = userId
+        val audioId = 456671411
+        val ma = 456241000
+        val mo = 336591731
+
+        val playlistAudioIds = listOf<String>(
+            "${174278282}_${456240589}"
+        )
+
+        apiSource.addAudio(174278282, 456240589)
+            .onSuccess { response ->
+                println("Audio added: ${response}")
+            }
+            .onError { error ->
+                println("Add audio request failed: $error")
+            }
+
+
+
+        apiSource.addAudiosToPlaylist(
+            ownerId = 336591731,
+            playlistId = 10,
+            audioIds = playlistAudioIds
+        )
+            .onSuccess { response ->
+                println("Audios added to playlist: ${response}")
+            }
+            .onError { error ->
+                println("Add audios to playlist request failed: $error")
+            }
+        /*
+        apiSource.removeAudiosFromPlaylist(
+            ownerId = playlistOwnerId,
+            playlistId = playlistId,
+            audioIds = playlistAudioIds
+        )
+            .onSuccess { response ->
+                println("Audios removed from playlist: ${response}")
+            }
+            .onError { error ->
+                println("Remove audios from playlist request failed: $error")
+            }
+        */
+        apiSource.createPlaylist(
+            ownerId = 336591731,
+            title = "test",
+            description = "test"
+        )
+            .onSuccess { response ->
+                println("Playlist created: ${response}")
+            }
+            .onError { error ->
+                println("Create playlist request failed: $error")
+            }
+
+//        apiSource.deletePlaylist(336591731, 12)
+//            .onSuccess { response ->
+//                println("Playlist deleted: ${response}")
+//            }
+//            .onError { error ->
+//                println("Delete playlist request failed: $error")
+//            }
+
     } finally {
         stopKoin()
     }

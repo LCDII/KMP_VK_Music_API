@@ -33,7 +33,7 @@ internal suspend inline fun <reified T> safeCall(
         return Result.Error(DataError.Remote.Unknown)
     }
 
-    return responseToResult(response, json)
+    return responseToResult<T>(response, json)
 }
 
 internal suspend inline fun <reified T> responseToResult(
