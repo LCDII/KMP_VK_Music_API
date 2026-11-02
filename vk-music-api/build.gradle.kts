@@ -35,6 +35,7 @@ kotlin {
             implementation(libs.kotlin.test)
             implementation(libs.ktor.client.mock)
             implementation(libs.kotlinx.resources)
+            implementation(libs.kotlinx.coroutines.test)
         }
 
         commonMain.dependencies {
