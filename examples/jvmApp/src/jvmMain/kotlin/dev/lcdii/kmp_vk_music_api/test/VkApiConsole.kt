@@ -25,34 +25,43 @@ fun main(): Unit = runBlocking {
         val auth = koin.get<JvmAuth>()
         val tokenStorage = koin.get<TokenStorage>()
 
-        val userId = when (val result = api.getUserId()) {
-            is Result.Success -> {
-                println("Токен найден: user_id=${result.data}")
-                result.data
+        var currentUserId: Int
+
+        if (!api.isAuthorized()) {
+            println("Нужна авторизация")
+
+            print("VK login: ")
+            val login = readln()
+
+            print("VK password: ")
+            val password = readln()
+
+            when (val authResult = auth.auth(login, password)) {
+                is Result.Error -> {
+                    println("Ошибка авторизации: ${describeError(authResult.error)}")
+                    return@runBlocking
+                }
+                is Result.Success -> Unit
             }
-            is Result.Error -> {
-                println("Нужна авторизация")
 
-                print("VK login: ")
-                val login = readln()
-
-                print("VK password: ")
-                val password = readln()
-
-                when (val authResult = auth.auth(login, password)) {
-                    is Result.Success -> (authResult.data as? VkApiResponse.AuthResponse)?.userId
-                    is Result.Error -> {
-                        println("Ошибка авторизации: ${authResult.error}")
-                        null
-                    }
+            currentUserId = when (val result = api.getUserId()) {
+                is Result.Success -> result.data
+                is Result.Error -> {
+                    println("Не удалось получить user_id: ${describeError(result.error)}")
+                    return@runBlocking
                 }
             }
-        } ?: run {
-            println("Авторизация не выполнена, выход.")
-            return@runBlocking
+        } else {
+            currentUserId = when (val result = api.getUserId()) {
+                is Result.Success -> result.data
+                is Result.Error -> {
+                    println("Не удалось получить user_id: ${describeError(result.error)}")
+                    return@runBlocking
+                }
+            }
         }
 
-        var currentUserId = userId
+        println("user_id=$currentUserId")
 
         while (true) {
             printMenu(currentUserId)
@@ -272,15 +281,21 @@ fun main(): Unit = runBlocking {
                         print("VK password: ")
                         val password = readln()
 
-                        when (val result = auth.auth(login, password)) {
+                        when (val authResult = auth.auth(login, password)) {
+                            is Result.Error -> {
+                                println("Ошибка авторизации: ${describeError(authResult.error)}")
+                            }
                             is Result.Success -> {
-                                val newUserId = (result.data as? VkApiResponse.AuthResponse)?.userId
-                                if (newUserId != null) {
-                                    currentUserId = newUserId
-                                    println("Теперь вы вошли как user_id=$currentUserId")
+                                when (val idResult = api.getUserId()) {
+                                    is Result.Success -> {
+                                        currentUserId = idResult.data
+                                        println("Теперь вы вошли как user_id=$currentUserId")
+                                    }
+                                    is Result.Error -> println(
+                                        "Вход выполнен, но user_id не получен: ${describeError(idResult.error)}"
+                                    )
                                 }
                             }
-                            is Result.Error -> println("Ошибка авторизации: ${result.error}")
                         }
                     }
 
@@ -346,7 +361,7 @@ private fun printSongs(songs: List<SongResponse>) {
     songs.forEach { song ->
         println(
             "  ${song.ownerId}_${song.id} | ${song.artist} — ${song.title} | " +
-                "${song.duration}s | access_key=${song.accessKey}"
+                "${song.duration}s | access_key=${song.accessKey} | ${song.url}"
         )
     }
 }
