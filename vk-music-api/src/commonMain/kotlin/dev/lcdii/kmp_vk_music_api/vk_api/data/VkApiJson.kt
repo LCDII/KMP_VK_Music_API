@@ -5,4 +5,5 @@ import kotlinx.serialization.json.Json
 public val VkApiJson: Json = Json {
     ignoreUnknownKeys = true
     explicitNulls = false
+    prettyPrint = true
 }

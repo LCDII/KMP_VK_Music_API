@@ -236,7 +236,7 @@ public class VkApiSource(
         }
     }
 
-    override suspend fun getUsersPlaylist(
+    override suspend fun getUsersPlaylists(
         userId: Int,
         count: Int?,
         offset: Int?

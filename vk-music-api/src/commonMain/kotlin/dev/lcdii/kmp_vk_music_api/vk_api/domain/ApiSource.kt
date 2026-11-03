@@ -18,7 +18,7 @@ public interface ApiSource {
         offset: Int? = null,
         playlistAttributes: PlaylistAttributes? = null
     ): Result<ApiResponse, DataError.Remote>
-    public suspend fun getUsersPlaylist(
+    public suspend fun getUsersPlaylists(
         userId: Int,
         count: Int? = null,
         offset: Int?= null
