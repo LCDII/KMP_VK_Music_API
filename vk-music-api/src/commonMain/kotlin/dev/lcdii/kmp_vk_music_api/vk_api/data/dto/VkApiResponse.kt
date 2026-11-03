@@ -391,9 +391,3 @@ public sealed interface VkApiResponse: ApiResponse {
     }
 
 }
-
-public inline fun <reified T: VkApiResponse> Json.decodeResponse(jsonString: String): T =
-    this.decodeFromJsonElement<T>(
-        this.parseToJsonElement(jsonString).jsonObject["response"] ?:
-        error("No Response Object")
-    )
