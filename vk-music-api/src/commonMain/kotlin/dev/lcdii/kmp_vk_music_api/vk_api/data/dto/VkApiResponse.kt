@@ -186,6 +186,14 @@ public data class AlbumResponse(
         }
 }
 
+@Serializable
+public data class AddedAudioResponse(
+    @SerialName("audio_id")
+    val audioId: Int,
+    @SerialName("track_code")
+    val trackCode: String? = null
+)
+
 public abstract class IntResponseSerializer<T>(
     private val serialName: String,
     private val fromInt: (Int) -> T,
@@ -321,6 +329,28 @@ public sealed interface VkApiResponse: ApiResponse {
         val items: List<AlbumResponse>
     ) : VkApiResponse
 
+    @Serializable(with = AudioGetPopular.AudioGetPopularSerializer::class)
+    public data class AudioGetPopular(
+        val items: List<SongResponse>
+    ): VkApiResponse {
+        public object AudioGetPopularSerializer : KSerializer<AudioGetPopular> {
+            override val descriptor: SerialDescriptor = ListSerializer(SongResponse.serializer()).descriptor
+
+            override fun deserialize(decoder: Decoder): AudioGetPopular {
+                val list =
+                    decoder.decodeSerializableValue(ListSerializer(SongResponse.serializer()))
+                return AudioGetPopular(items = list)
+            }
+
+            override fun serialize(encoder: Encoder, value: AudioGetPopular) {
+                encoder.encodeSerializableValue(
+                    ListSerializer(SongResponse.serializer()),
+                    value.items
+                )
+            }
+        }
+    }
+
     @Serializable(with = AddAudioResponse.Serializer::class)
     public data class AddAudioResponse(
         val result: Int
@@ -331,14 +361,6 @@ public sealed interface VkApiResponse: ApiResponse {
             toInt = { it.result }
         )
     }
-
-    @Serializable
-    public data class AddedAudioResponse(
-        @SerialName("audio_id")
-        val audioId: Int,
-        @SerialName("track_code")
-        val trackCode: String? = null
-    )
 
     @Serializable(with = AddAudiosToPlaylistResponse.Serializer::class)
     public data class AddAudiosToPlaylistResponse(

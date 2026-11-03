@@ -8,7 +8,6 @@ import dev.lcdii.kmp_vk_music_api.vk_api.JvmAuth
 import dev.lcdii.kmp_vk_music_api.vk_api.VkApiSource
 import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.AlbumResponse
 import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.SongResponse
-import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.VkApiResponse
 import dev.lcdii.kmp_vk_music_api.vk_api.domain.PlaylistAttributes
 import dev.lcdii.kmp_vk_music_api.vk_api.domain.TokenStorage
 import kotlinx.coroutines.runBlocking
@@ -131,7 +130,7 @@ fun main(): Unit = runBlocking {
 
                         printResult(
                             "getUsersPlaylist",
-                            api.getUsersPlaylist(ownerId, count, offset)
+                            api.getUsersPlaylists(ownerId, count, offset)
                         ) { response ->
                             println("  count = ${response.count}")
                             response.nextFrom?.let { println("  next_from = $it") }

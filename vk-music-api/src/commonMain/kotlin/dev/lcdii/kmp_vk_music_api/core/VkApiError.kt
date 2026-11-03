@@ -9,12 +9,12 @@ public enum class TextErrorType{
     UNKNOWN;
     public companion object{
         public fun fromString(string: String): TextErrorType = when(string) {
-            "need_captcha" -> TextErrorType.NEED_CAPTCHA
-            "need_validation" -> TextErrorType.NEED_VALIDATION
-            "invalid_request" -> TextErrorType.INVALID_REQUEST
-            "invalid_client" -> TextErrorType.INVALID_CLIENT
-            "invalid_token" -> TextErrorType.INVALID_TOKEN
-            else -> TextErrorType.UNKNOWN
+            "need_captcha" -> NEED_CAPTCHA
+            "need_validation" -> NEED_VALIDATION
+            "invalid_request" -> INVALID_REQUEST
+            "invalid_client" -> INVALID_CLIENT
+            "invalid_token" -> INVALID_TOKEN
+            else -> UNKNOWN
         }
     }
 }
