@@ -2,11 +2,17 @@ package dev.lcdii.kmp_vk_music_api
 
 import com.goncalossilva.resources.Resource
 import dev.lcdii.kmp_vk_music_api.core.ACCESS_TOKEN_KEY
+import dev.lcdii.kmp_vk_music_api.core.AUDIO_ADD_TO_PLAYLIST_URL
+import dev.lcdii.kmp_vk_music_api.core.AUDIO_ADD_URL
 import dev.lcdii.kmp_vk_music_api.core.AUDIO_COUNT_URL
+import dev.lcdii.kmp_vk_music_api.core.AUDIO_CREATE_PLAYLIST_URL
+import dev.lcdii.kmp_vk_music_api.core.AUDIO_DELETE_PLAYLIST_URL
+import dev.lcdii.kmp_vk_music_api.core.AUDIO_DELETE_URL
 import dev.lcdii.kmp_vk_music_api.core.AUDIO_GET_BY_ID_URL
 import dev.lcdii.kmp_vk_music_api.core.AUDIO_GET_POPULAR_URL
 import dev.lcdii.kmp_vk_music_api.core.AUDIO_GET_URL
 import dev.lcdii.kmp_vk_music_api.core.AUDIO_PLAYLIST_GET_URL
+import dev.lcdii.kmp_vk_music_api.core.AUDIO_REMOVE_FROM_PLAYLIST_URL
 import dev.lcdii.kmp_vk_music_api.core.AUDIO_SEARCH_ALBUMS_URL
 import dev.lcdii.kmp_vk_music_api.core.AUDIO_SEARCH_PLAYLIST_URL
 import dev.lcdii.kmp_vk_music_api.core.AUDIO_SEARCH_URL
@@ -57,7 +63,10 @@ private const val TEST_TOKEN: String = "token"
 private const val USER_ID: Int = 1234
 private const val AUDIO_OFFSET: Int = 50
 private const val AUDIO_COUNT: Int = 50
+private const val AUDIO_ID: Int = 456
 private const val PLAYLIST_ID: Int = 10
+private const val PLAYLIST_TITLE: String = "My playlist"
+private const val PLAYLIST_DESCRIPTION: String = "Playlist description"
 private const val ACCESS_KEY: String = "1q2w3e"
 private const val PLAYLIST_OFFSET: Int = 50
 private const val PLAYLIST_COUNT: Int = 50
@@ -327,7 +336,10 @@ class VkApiSourceTest {
         assertIs<Result.Success<VkApiResponse.AudioGet>>(
             api.getUsersAudio(
                 userId = USER_ID,
-                playlistAttributes = PlaylistAttributes(PLAYLIST_ID, ACCESS_KEY)
+                playlistAttributes = PlaylistAttributes(
+                    PLAYLIST_ID,
+                    ACCESS_KEY
+                )
             )
         )
     }
@@ -439,7 +451,9 @@ class VkApiSourceTest {
             json = testJson,
             tokenStorage = TestTokenStorage()
         )
-        assertIs<Result.Success<VkApiResponse.AudioSearchPlaylists>>(api.searchPlaylists(QUERY))
+        assertIs<Result.Success<VkApiResponse.AudioSearchPlaylists>>(
+            api.searchPlaylists(QUERY)
+        )
     }
 
     @Test
@@ -648,6 +662,262 @@ class VkApiSourceTest {
 
     @Test
     fun `addAudio sends right form` () = runTest {
+        val engine = createTestPostEngine(
+            expectedPath = AUDIO_ADD_URL,
+            expectedFormParameters = mapOf(
+                "owner_id" to USER_ID.toString(),
+                "audio_id" to AUDIO_ID.toString()
+            ),
+            testJsonsPath = "audio/add.json"
+        )
+        val api = VkApiSource(
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
+            tokenStorage = TestTokenStorage()
+        )
+        assertIs<Result.Success<VkApiResponse.AddAudioResponse>>(
+            api.addAudio(USER_ID, AUDIO_ID)
+        )
+    }
 
+    @Test
+    fun `addAudiosToPlaylist sends right form` () = runTest {
+        val engine = createTestPostEngine(
+            expectedPath = AUDIO_ADD_TO_PLAYLIST_URL,
+            expectedFormParameters = mapOf(
+                "owner_id" to USER_ID.toString(),
+                "playlist_id" to PLAYLIST_ID.toString(),
+                "audio_ids" to AUDIO_IDS.joinToString(",")
+            ),
+            testJsonsPath = "audio/add_to_playlist.json"
+        )
+        val api = VkApiSource(
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
+            tokenStorage = TestTokenStorage()
+        )
+        assertIs<Result.Success<VkApiResponse.AddAudiosToPlaylistResponse>>(
+            api.addAudiosToPlaylist(
+                USER_ID,
+                PLAYLIST_ID,
+                AUDIO_IDS
+            )
+        )
+    }
+
+    @Test
+    fun `deleteAudio sends right form` () = runTest {
+        val engine = createTestPostEngine(
+            expectedPath = AUDIO_DELETE_URL,
+            expectedFormParameters = mapOf(
+                "owner_id" to USER_ID.toString(),
+                "audio_id" to AUDIO_ID.toString()
+            ),
+            testJsonsPath = "audio/delete.json"
+        )
+        val api = VkApiSource(
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
+            tokenStorage = TestTokenStorage()
+        )
+        assertIs<Result.Success<VkApiResponse.DeleteAudioResponse>>(
+            api.deleteAudio(USER_ID, AUDIO_ID)
+        )
+    }
+
+    @Test
+    fun `removeAudiosFromPlaylist sends right form` () = runTest {
+        val engine = createTestPostEngine(
+            expectedPath = AUDIO_REMOVE_FROM_PLAYLIST_URL,
+            expectedFormParameters = mapOf(
+                "owner_id" to USER_ID.toString(),
+                "playlist_id" to PLAYLIST_ID.toString(),
+                "audio_ids" to AUDIO_IDS.joinToString(",")
+            ),
+            testJsonsPath = "audio/remove_from_playlist.json"
+        )
+        val api = VkApiSource(
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
+            tokenStorage = TestTokenStorage()
+        )
+        assertIs<Result.Success<VkApiResponse.RemoveAudiosFromPlaylistResponse>>(
+            api.removeAudiosFromPlaylist(
+                USER_ID,
+                PLAYLIST_ID,
+                AUDIO_IDS
+            )
+        )
+    }
+
+    @Test
+    fun `createPlaylist sends right form` () = runTest {
+        val engine = createTestPostEngine(
+            expectedPath = AUDIO_CREATE_PLAYLIST_URL,
+            expectedFormParameters = mapOf(
+                "owner_id" to USER_ID.toString(),
+                "title" to PLAYLIST_TITLE,
+                "description" to PLAYLIST_DESCRIPTION
+            ),
+            testJsonsPath = "audio/create_playlist.json"
+        )
+        val api = VkApiSource(
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
+            tokenStorage = TestTokenStorage()
+        )
+        assertIs<Result.Success<VkApiResponse.CreatePlaylistResponse>>(
+            api.createPlaylist(USER_ID, PLAYLIST_TITLE, PLAYLIST_DESCRIPTION)
+        )
+    }
+
+    @Test
+    fun `createPlaylist without description sends right form` () = runTest {
+        val engine = createTestPostEngine(
+            expectedPath = AUDIO_CREATE_PLAYLIST_URL,
+            expectedFormParameters = mapOf(
+                "owner_id" to USER_ID.toString(),
+                "title" to PLAYLIST_TITLE
+            ),
+            testJsonsPath = "audio/create_playlist.json"
+        )
+        val api = VkApiSource(
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
+            tokenStorage = TestTokenStorage()
+        )
+        assertIs<Result.Success<VkApiResponse.CreatePlaylistResponse>>(
+            api.createPlaylist(USER_ID, PLAYLIST_TITLE)
+        )
+    }
+
+    @Test
+    fun `deletePlaylist sends right form` () = runTest {
+        val engine = createTestPostEngine(
+            expectedPath = AUDIO_DELETE_PLAYLIST_URL,
+            expectedFormParameters = mapOf(
+                "owner_id" to USER_ID.toString(),
+                "playlist_id" to PLAYLIST_ID.toString()
+            ),
+            testJsonsPath = "audio/delete_playlist.json"
+        )
+        val api = VkApiSource(
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
+            tokenStorage = TestTokenStorage()
+        )
+        assertIs<Result.Success<VkApiResponse.DeletePlaylistResponse>>(
+            api.deletePlaylist(USER_ID, PLAYLIST_ID)
+        )
+    }
+
+    @Test
+    fun `addAudiosToPlaylist with empty ids returns DataError` () = runTest {
+        val engine = createTestPostEngine(
+            expectedPath = AUDIO_ADD_TO_PLAYLIST_URL,
+            expectedFormParameters = mapOf(
+                "owner_id" to USER_ID.toString(),
+                "playlist_id" to PLAYLIST_ID.toString(),
+                "audio_ids" to emptyList<String>().joinToString()
+            ),
+            testJsonsPath = "audio/add_to_playlist.json"
+        )
+        val api = VkApiSource(
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
+            tokenStorage = TestTokenStorage()
+        )
+        assertIs<Result.Error<DataError.Remote.Api>>(
+            api.addAudiosToPlaylist(
+                USER_ID,
+                PLAYLIST_ID,
+                emptyList()
+            )
+        )
+    }
+
+    @Test
+    fun `removeAudiosFromPlaylist with empty ids returns DataError` () = runTest {
+        val engine = createTestPostEngine(
+            expectedPath = AUDIO_REMOVE_FROM_PLAYLIST_URL,
+            expectedFormParameters = mapOf(
+                "owner_id" to USER_ID.toString(),
+                "playlist_id" to PLAYLIST_ID.toString(),
+                "audio_ids" to emptyList<String>().joinToString()
+            ),
+            testJsonsPath = "audio/remove_from_playlist.json"
+        )
+        val api = VkApiSource(
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
+            tokenStorage = TestTokenStorage()
+        )
+        assertIs<Result.Error<DataError.Remote.Api>>(
+            api.removeAudiosFromPlaylist(
+                USER_ID,
+                PLAYLIST_ID,
+                emptyList()
+            )
+        )
+    }
+
+    //EMPTY TOKEN ===============================================================================
+
+    @Test
+    fun `addAudio without token returns NotAuthorized` () = runTest {
+        assertIs<Result.Error<DataError.Remote.NotAuthorized>>(
+            createApiWithoutToken().addAudio(USER_ID, AUDIO_ID)
+        )
+    }
+
+    @Test
+    fun `addAudiosToPlaylist without token returns NotAuthorized` () = runTest {
+        assertIs<Result.Error<DataError.Remote.NotAuthorized>>(
+            createApiWithoutToken().addAudiosToPlaylist(
+                USER_ID,
+                PLAYLIST_ID,
+                AUDIO_IDS)
+        )
+    }
+
+    @Test
+    fun `deleteAudio without token returns NotAuthorized` () = runTest {
+        assertIs<Result.Error<DataError.Remote.NotAuthorized>>(
+            createApiWithoutToken().deleteAudio(USER_ID, AUDIO_ID)
+        )
+    }
+
+    @Test
+    fun `removeAudiosFromPlaylist without token returns NotAuthorized` () = runTest {
+        assertIs<Result.Error<DataError.Remote.NotAuthorized>>(
+            createApiWithoutToken().removeAudiosFromPlaylist(
+                USER_ID,
+                PLAYLIST_ID,
+                AUDIO_IDS
+            )
+        )
+    }
+
+    @Test
+    fun `createPlaylist without token returns NotAuthorized` () = runTest {
+        assertIs<Result.Error<DataError.Remote.NotAuthorized>>(
+            createApiWithoutToken().createPlaylist(USER_ID, PLAYLIST_TITLE)
+        )
+    }
+
+    @Test
+    fun `deletePlaylist without token returns NotAuthorized` () = runTest {
+        assertIs<Result.Error<DataError.Remote.NotAuthorized>>(
+            createApiWithoutToken().deletePlaylist(USER_ID, PLAYLIST_ID)
+        )
     }
 }
