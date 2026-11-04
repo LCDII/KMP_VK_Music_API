@@ -278,7 +278,7 @@ fun main(): Unit = runBlocking {
                             .map { it.trim() }
                             .filter { it.isNotEmpty() }
 
-                        printResult("getById", api.getById(audioIds)) { response ->
+                        printResult("getAudioById", api.getAudioById(audioIds)) { response ->
                             printSongs(response.items)
                         }
                     }
@@ -371,7 +371,7 @@ private fun printMenu(userId: Int) {
          11) removeAudiosFromPlaylist
          12) createPlaylist
          13) deletePlaylist
-         14) getById
+         14) getAudioById
          15) searchAlbums
          16) getPopular
          17) войти заново

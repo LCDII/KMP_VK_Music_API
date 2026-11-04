@@ -293,11 +293,21 @@ public class VkApiSource(
         }
     }
 
-    public suspend fun getById(
+    public suspend fun getAudioById(
         audioIds: List<String>
     ): Result<VkApiResponse.AudioGetById, DataError.Remote> {
         val token = tokenStorage.getToken()
             ?: return Result.Error(DataError.Remote.NotAuthorized)
+        if (audioIds.isEmpty()) {
+            return Result.Error(
+                DataError.Remote.Api(
+                    VkApiError.CodeError(
+                        code = 100,
+                        message = "audioIds must not be empty"
+                    )
+                )
+            )
+        }
         return safeCall<VkApiResponse.AudioGetById>(json) {
             val request = VkApiRequest.GetById(
                 audioIds = audioIds,
@@ -427,6 +437,16 @@ public class VkApiSource(
     ): Result<VkApiResponse.AddAudiosToPlaylistResponse, DataError.Remote> {
         val token = tokenStorage.getToken()
             ?: return Result.Error(DataError.Remote.NotAuthorized)
+        if (audioIds.isEmpty()) {
+            return Result.Error(
+                DataError.Remote.Api(
+                    VkApiError.CodeError(
+                        code = 100,
+                        message = "audioIds must not be empty"
+                    )
+                )
+            )
+        }
         return safeCall<VkApiResponse.AddAudiosToPlaylistResponse>(json) {
             val request = VkApiRequest.AddAudiosToPlaylist(
                 ownerId = ownerId,
@@ -484,6 +504,16 @@ public class VkApiSource(
     ): Result<VkApiResponse.RemoveAudiosFromPlaylistResponse, DataError.Remote> {
         val token = tokenStorage.getToken()
             ?: return Result.Error(DataError.Remote.NotAuthorized)
+        if (audioIds.isEmpty()) {
+            return Result.Error(
+                DataError.Remote.Api(
+                    VkApiError.CodeError(
+                        code = 100,
+                        message = "audioIds must not be empty"
+                    )
+                )
+            )
+        }
         return safeCall<VkApiResponse.RemoveAudiosFromPlaylistResponse>(json) {
             val request = VkApiRequest.RemoveAudiosFromPlaylist(
                 ownerId = ownerId,
