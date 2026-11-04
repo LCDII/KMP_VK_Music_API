@@ -26,13 +26,20 @@ import dev.lcdii.kmp_vk_music_api.core.PROFILE_INFO_URL
 import dev.lcdii.kmp_vk_music_api.core.Result
 import dev.lcdii.kmp_vk_music_api.core.USER_AGENT_KEY
 import dev.lcdii.kmp_vk_music_api.vk_api.VkApiSource
-import dev.lcdii.kmp_vk_music_api.vk_api.data.HttpClientFactory
 import dev.lcdii.kmp_vk_music_api.vk_api.data.VkMobileAppClient
 import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.VkApiResponse
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.AppClient
 import dev.lcdii.kmp_vk_music_api.vk_api.domain.PlaylistAttributes
 import dev.lcdii.kmp_vk_music_api.vk_api.domain.TokenStorage
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.HttpClientEngine
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
+import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.request.HttpRequestData
 import io.ktor.http.HttpHeaders
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -41,6 +48,7 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Url
 import io.ktor.http.headersOf
+import kotlinx.serialization.json.Json
 import kotlin.test.assertIs
 
 private const val TEST_TOKEN: String = "token"
@@ -64,7 +72,6 @@ private val AUDIO_IDS: List<String> = listOf("123_456", "234_567", "345_678")
 
 
 class VkApiSourceTest {
-    //GET ==========================================================================================
     private class TestTokenStorage(
         private var token: String? = TEST_TOKEN
     ): TokenStorage {
@@ -109,42 +116,88 @@ class VkApiSourceTest {
 
     private fun createApiWithoutToken(): VkApiSource {
         val engine = MockEngine {
-            error("error")
+            error("HTTP request must not be sent without token")
         }
         return VkApiSource(
-            httpClient = HttpClientFactory.create(engine),
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
             tokenStorage = TestEmptyTokenStorage()
         )
     }
 
+    private object TestHttpClientFactory {
+        fun create(engine: HttpClientEngine): HttpClient =
+            HttpClient(engine) {
+                install(Logging) {
+                    logger = object : Logger {
+                        override fun log(message: String) {
+                            println(message)
+                        }
+                    }
+                    level = LogLevel.ALL
+                }
+                defaultRequest {
+                    url(BASE_URL)
+                    url.parameters.append("https", DEFAULT_HTTPS.toString())
+                    url.parameters.append("lang", DEFAULT_LANG)
+                    url.parameters.append("extended", DEFAULT_EXTENDED.toString())
+                    url.parameters.append("v", DEFAULT_V)
+                }
+            }
+    }
 
+    private data object TestAppClient: AppClient {
+        override val userAgent = "VKAndroidApp/4.13.1-1206 (Android 4.4.3; SDK 19; armeabi; ; ru)"
+        override val clientId = "2274003"
+        override val clientSecret = "hHbZxrka2uZ6jB1inYsH"
+    }
 
+    private val testJson = Json {
+        ignoreUnknownKeys = true
+        explicitNulls = false
+    }
+
+    private fun assertEqualsStandardGetRequestParameters(request: HttpRequestData) {
+        //standard
+        assertEquals(HttpMethod.Get, request.method)
+        assertEquals(Url(BASE_URL).host, request.url.host)
+        assertEquals(DEFAULT_HTTPS.toString(),request.url.parameters["https"])
+        assertEquals(DEFAULT_LANG,request.url.parameters["lang"])
+        assertEquals(DEFAULT_EXTENDED.toString(),request.url.parameters["extended"])
+        assertEquals(DEFAULT_V,request.url.parameters["v"])
+        assertEquals(VkMobileAppClient.userAgent, request.headers[USER_AGENT_KEY])
+        assertEquals(TEST_TOKEN, request.url.parameters[ACCESS_TOKEN_KEY])
+    }
+
+    private fun createTestGetEngine(
+        expectedPath: String,
+        expectedUrlParameters: Map<String, String> = emptyMap(),
+        testJsonsPath: String
+    ): MockEngine = MockEngine { request ->
+        assertEqualsStandardGetRequestParameters(request)
+        assertEquals("/method/${expectedPath}",request.url.encodedPath)
+        for ((key, value) in expectedUrlParameters) {
+            assertEquals(value, request.url.parameters[key])
+        }
+        respond(
+            content = Resource("json_responses/${testJsonsPath}").readText(),
+            status = HttpStatusCode.OK,
+            headers = headersOf(HttpHeaders.ContentType, "application/json")
+        )
+    }
+
+    //GET ==========================================================================================
     @Test
     fun `getProfileInfo sends right request` () = runTest {
-        val engine = MockEngine { request ->
-            //standard
-            assertEquals(HttpMethod.Get, request.method)
-            assertEquals(Url(BASE_URL).host, request.url.host)
-            assertEquals(DEFAULT_HTTPS.toString(),request.url.parameters["https"])
-            assertEquals(DEFAULT_LANG,request.url.parameters["lang"])
-            assertEquals(DEFAULT_EXTENDED.toString(),request.url.parameters["extended"])
-            assertEquals(DEFAULT_V,request.url.parameters["v"])
-            assertEquals(VkMobileAppClient.userAgent, request.headers[USER_AGENT_KEY])
-            assertEquals(TEST_TOKEN, request.url.parameters[ACCESS_TOKEN_KEY])
-
-            //not standard
-            assertEquals("/method/${PROFILE_INFO_URL}",request.url.encodedPath)
-
-            respond(
-                content = Resource("json_responses/account/get_profile_info.json").readText(),
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, "application/json")
-            )
-        }
-
-        val httpClient = HttpClientFactory.create(engine)
+        val engine = createTestGetEngine(
+            expectedPath = PROFILE_INFO_URL,
+            testJsonsPath = "account/get_profile_info.json"
+        )
         val api = VkApiSource(
-            httpClient = httpClient,
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
             tokenStorage = TestTokenStorage()
         )
         assertIs<Result.Success<VkApiResponse.ProfileInfo>>(api.getProfileInfo())
@@ -152,31 +205,17 @@ class VkApiSourceTest {
 
     @Test
     fun `getUsersAudioCount sends right request` () = runTest {
-        val engine = MockEngine { request ->
-            //standard
-            assertEquals(HttpMethod.Get, request.method)
-            assertEquals(Url(BASE_URL).host, request.url.host)
-            assertEquals(DEFAULT_HTTPS.toString(),request.url.parameters["https"])
-            assertEquals(DEFAULT_LANG,request.url.parameters["lang"])
-            assertEquals(DEFAULT_EXTENDED.toString(),request.url.parameters["extended"])
-            assertEquals(DEFAULT_V,request.url.parameters["v"])
-            assertEquals(VkMobileAppClient.userAgent, request.headers[USER_AGENT_KEY])
-            assertEquals(TEST_TOKEN, request.url.parameters[ACCESS_TOKEN_KEY])
-
-            //not standard
-            assertEquals("/method/${AUDIO_COUNT_URL}",request.url.encodedPath)
-            assertEquals(USER_ID.toString(), request.url.parameters["owner_id"])
-
-            respond(
-                content = Resource("json_responses/audio/get_count.json").readText(),
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, "application/json")
-            )
-        }
-
-        val httpClient = HttpClientFactory.create(engine)
+        val engine = createTestGetEngine(
+            expectedPath = AUDIO_COUNT_URL,
+            expectedUrlParameters = mapOf(
+                "owner_id" to USER_ID.toString()
+            ),
+            testJsonsPath = "audio/get_count.json"
+        )
         val api = VkApiSource(
-            httpClient = httpClient,
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
             tokenStorage = TestTokenStorage()
         )
         assertIs<Result.Success<VkApiResponse.AudioGetCount>>(
@@ -186,33 +225,19 @@ class VkApiSourceTest {
 
     @Test
     fun `getUsersAudio sends right request` () = runTest {
-        val engine = MockEngine { request ->
-            //standard
-            assertEquals(HttpMethod.Get, request.method)
-            assertEquals(Url(BASE_URL).host, request.url.host)
-            assertEquals(DEFAULT_HTTPS.toString(),request.url.parameters["https"])
-            assertEquals(DEFAULT_LANG,request.url.parameters["lang"])
-            assertEquals(DEFAULT_EXTENDED.toString(),request.url.parameters["extended"])
-            assertEquals(DEFAULT_V,request.url.parameters["v"])
-            assertEquals(VkMobileAppClient.userAgent, request.headers[USER_AGENT_KEY])
-            assertEquals(TEST_TOKEN, request.url.parameters[ACCESS_TOKEN_KEY])
-
-            //not standard
-            assertEquals("/method/${AUDIO_GET_URL}",request.url.encodedPath)
-            assertEquals(USER_ID.toString(), request.url.parameters["owner_id"])
-            assertEquals(DEFAULT_AUDIO_COUNT.toString(), request.url.parameters["count"])
-            assertEquals(DEFAULT_AUDIO_OFFSET.toString(), request.url.parameters["offset"])
-
-            respond(
-                content = Resource("json_responses/audio/get.json").readText(),
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, "application/json")
-            )
-        }
-
-        val httpClient = HttpClientFactory.create(engine)
+        val engine = createTestGetEngine(
+            expectedPath = AUDIO_GET_URL,
+            expectedUrlParameters = mapOf(
+                "owner_id" to USER_ID.toString(),
+                "count" to DEFAULT_AUDIO_COUNT.toString(),
+                "offset" to DEFAULT_AUDIO_OFFSET.toString()
+            ),
+            testJsonsPath = "audio/get.json"
+        )
         val api = VkApiSource(
-            httpClient = httpClient,
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
             tokenStorage = TestTokenStorage()
         )
         assertIs<Result.Success<VkApiResponse.AudioGet>>(api.getUsersAudio(USER_ID))
@@ -220,33 +245,19 @@ class VkApiSourceTest {
 
     @Test
     fun `getUsersAudio with custom count and offset sends right request` () = runTest {
-        val engine = MockEngine { request ->
-            //standard
-            assertEquals(HttpMethod.Get, request.method)
-            assertEquals(Url(BASE_URL).host, request.url.host)
-            assertEquals(DEFAULT_HTTPS.toString(),request.url.parameters["https"])
-            assertEquals(DEFAULT_LANG,request.url.parameters["lang"])
-            assertEquals(DEFAULT_EXTENDED.toString(),request.url.parameters["extended"])
-            assertEquals(DEFAULT_V,request.url.parameters["v"])
-            assertEquals(VkMobileAppClient.userAgent, request.headers[USER_AGENT_KEY])
-            assertEquals(TEST_TOKEN, request.url.parameters[ACCESS_TOKEN_KEY])
-
-            //not standard
-            assertEquals("/method/${AUDIO_GET_URL}",request.url.encodedPath)
-            assertEquals(USER_ID.toString(), request.url.parameters["owner_id"])
-            assertEquals(AUDIO_COUNT.toString(), request.url.parameters["count"])
-            assertEquals(AUDIO_OFFSET.toString(), request.url.parameters["offset"])
-
-            respond(
-                content = Resource("json_responses/audio/get.json").readText(),
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, "application/json")
-            )
-        }
-
-        val httpClient = HttpClientFactory.create(engine)
+        val engine = createTestGetEngine(
+            expectedPath = AUDIO_GET_URL,
+            expectedUrlParameters = mapOf(
+                "owner_id" to USER_ID.toString(),
+                "count" to AUDIO_COUNT.toString(),
+                "offset" to AUDIO_OFFSET.toString()
+            ),
+            testJsonsPath = "audio/get.json"
+        )
         val api = VkApiSource(
-            httpClient = httpClient,
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
             tokenStorage = TestTokenStorage()
         )
         assertIs<Result.Success<VkApiResponse.AudioGet>>(
@@ -256,70 +267,46 @@ class VkApiSourceTest {
 
     @Test
     fun `getUsersAudio from playlist sends right request` () = runTest {
-        val engine = MockEngine { request ->
-            //standard
-            assertEquals(HttpMethod.Get, request.method)
-            assertEquals(Url(BASE_URL).host, request.url.host)
-            assertEquals(DEFAULT_HTTPS.toString(),request.url.parameters["https"])
-            assertEquals(DEFAULT_LANG,request.url.parameters["lang"])
-            assertEquals(DEFAULT_EXTENDED.toString(),request.url.parameters["extended"])
-            assertEquals(DEFAULT_V,request.url.parameters["v"])
-            assertEquals(VkMobileAppClient.userAgent, request.headers[USER_AGENT_KEY])
-            assertEquals(TEST_TOKEN, request.url.parameters[ACCESS_TOKEN_KEY])
-
-            //not standard
-            assertEquals("/method/${AUDIO_GET_URL}",request.url.encodedPath)
-            assertEquals(USER_ID.toString(), request.url.parameters["owner_id"])
-            assertEquals(DEFAULT_AUDIO_COUNT.toString(), request.url.parameters["count"])
-            assertEquals(DEFAULT_AUDIO_OFFSET.toString(), request.url.parameters["offset"])
-            assertEquals(PLAYLIST_ID.toString(), request.url.parameters["album_id"])
-            assertEquals(ACCESS_KEY, request.url.parameters["access_key"])
-
-            respond(
-                content = Resource("json_responses/audio/get.json").readText(),
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, "application/json")
-            )
-        }
-
-        val httpClient = HttpClientFactory.create(engine)
+        val engine = createTestGetEngine(
+            expectedPath = AUDIO_GET_URL,
+            expectedUrlParameters = mapOf(
+                "owner_id" to USER_ID.toString(),
+                "count" to DEFAULT_AUDIO_COUNT.toString(),
+                "offset" to DEFAULT_AUDIO_OFFSET.toString(),
+                "album_id" to PLAYLIST_ID.toString(),
+                "access_key" to ACCESS_KEY
+            ),
+            testJsonsPath = "audio/get.json"
+        )
         val api = VkApiSource(
-            httpClient = httpClient,
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
             tokenStorage = TestTokenStorage()
         )
-        assertIs<Result.Success<VkApiResponse.AudioGet>>(api.getUsersAudio(userId = USER_ID,
-            playlistAttributes = PlaylistAttributes(PLAYLIST_ID, ACCESS_KEY)))
+        assertIs<Result.Success<VkApiResponse.AudioGet>>(
+            api.getUsersAudio(
+                userId = USER_ID,
+                playlistAttributes = PlaylistAttributes(PLAYLIST_ID, ACCESS_KEY)
+            )
+        )
     }
 
     @Test
     fun `getUsersPlaylists sends right request` () = runTest {
-        val engine = MockEngine { request ->
-            //standard
-            assertEquals(HttpMethod.Get, request.method)
-            assertEquals(Url(BASE_URL).host, request.url.host)
-            assertEquals(DEFAULT_HTTPS.toString(),request.url.parameters["https"])
-            assertEquals(DEFAULT_LANG,request.url.parameters["lang"])
-            assertEquals(DEFAULT_EXTENDED.toString(),request.url.parameters["extended"])
-            assertEquals(DEFAULT_V,request.url.parameters["v"])
-            assertEquals(VkMobileAppClient.userAgent, request.headers[USER_AGENT_KEY])
-            assertEquals(TEST_TOKEN, request.url.parameters[ACCESS_TOKEN_KEY])
-
-            //not standard
-            assertEquals("/method/${AUDIO_PLAYLIST_GET_URL}",request.url.encodedPath)
-            assertEquals(USER_ID.toString(), request.url.parameters["owner_id"])
-            assertEquals(DEFAULT_PLAYLIST_COUNT.toString(), request.url.parameters["count"])
-            assertEquals(DEFAULT_PLAYLIST_OFFSET.toString(), request.url.parameters["offset"])
-
-            respond(
-                content = Resource("json_responses/audio/get_playlists.json").readText(),
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, "application/json")
-            )
-        }
-
-        val httpClient = HttpClientFactory.create(engine)
+        val engine = createTestGetEngine(
+            expectedPath = AUDIO_PLAYLIST_GET_URL,
+            expectedUrlParameters = mapOf(
+                "owner_id" to USER_ID.toString(),
+                "count" to DEFAULT_PLAYLIST_COUNT.toString(),
+                "offset" to DEFAULT_PLAYLIST_OFFSET.toString()
+            ),
+            testJsonsPath = "audio/get_playlists.json"
+        )
         val api = VkApiSource(
-            httpClient = httpClient,
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
             tokenStorage = TestTokenStorage()
         )
         assertIs<Result.Success<VkApiResponse.AudioGetPlayLists>>(
@@ -329,33 +316,19 @@ class VkApiSourceTest {
 
     @Test
     fun `getUsersPlaylists with custom count and offset sends right request` () = runTest {
-        val engine = MockEngine { request ->
-            //standard
-            assertEquals(HttpMethod.Get, request.method)
-            assertEquals(Url(BASE_URL).host, request.url.host)
-            assertEquals(DEFAULT_HTTPS.toString(),request.url.parameters["https"])
-            assertEquals(DEFAULT_LANG,request.url.parameters["lang"])
-            assertEquals(DEFAULT_EXTENDED.toString(),request.url.parameters["extended"])
-            assertEquals(DEFAULT_V,request.url.parameters["v"])
-            assertEquals(VkMobileAppClient.userAgent, request.headers[USER_AGENT_KEY])
-            assertEquals(TEST_TOKEN, request.url.parameters[ACCESS_TOKEN_KEY])
-
-            //not standard
-            assertEquals("/method/${AUDIO_PLAYLIST_GET_URL}",request.url.encodedPath)
-            assertEquals(USER_ID.toString(), request.url.parameters["owner_id"])
-            assertEquals(PLAYLIST_COUNT.toString(), request.url.parameters["count"])
-            assertEquals(PLAYLIST_OFFSET.toString(), request.url.parameters["offset"])
-
-            respond(
-                content = Resource("json_responses/audio/get_playlists.json").readText(),
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, "application/json")
-            )
-        }
-
-        val httpClient = HttpClientFactory.create(engine)
+        val engine = createTestGetEngine(
+            expectedPath = AUDIO_PLAYLIST_GET_URL,
+            expectedUrlParameters = mapOf(
+                "owner_id" to USER_ID.toString(),
+                "count" to PLAYLIST_COUNT.toString(),
+                "offset" to PLAYLIST_OFFSET.toString()
+            ),
+            testJsonsPath = "audio/get_playlists.json"
+        )
         val api = VkApiSource(
-            httpClient = httpClient,
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
             tokenStorage = TestTokenStorage()
         )
         assertIs<Result.Success<VkApiResponse.AudioGetPlayLists>>(
@@ -365,35 +338,21 @@ class VkApiSourceTest {
 
     @Test
     fun `searchAudio sends right request` () = runTest {
-        val engine = MockEngine { request ->
-            //standard
-            assertEquals(HttpMethod.Get, request.method)
-            assertEquals(Url(BASE_URL).host, request.url.host)
-            assertEquals(DEFAULT_HTTPS.toString(),request.url.parameters["https"])
-            assertEquals(DEFAULT_LANG,request.url.parameters["lang"])
-            assertEquals(DEFAULT_EXTENDED.toString(),request.url.parameters["extended"])
-            assertEquals(DEFAULT_V,request.url.parameters["v"])
-            assertEquals(VkMobileAppClient.userAgent, request.headers[USER_AGENT_KEY])
-            assertEquals(TEST_TOKEN, request.url.parameters[ACCESS_TOKEN_KEY])
-
-            //not standard
-            assertEquals("/method/${AUDIO_SEARCH_URL}",request.url.encodedPath)
-            assertEquals(QUERY, request.url.parameters["q"])
-            assertEquals(DEFAULT_AUDIO_COUNT.toString(), request.url.parameters["count"])
-            assertEquals(DEFAULT_AUDIO_OFFSET.toString(), request.url.parameters["offset"])
-            assertEquals(DEFAULT_AUDIO_AUTOCOMPLETE_MODE.toString(), request.url.parameters["autocomplete"])
-            assertEquals(DEFAULT_AUDIO_SORT_MODE.toString(), request.url.parameters["sort"])
-
-            respond(
-                content = Resource("json_responses/audio/search.json").readText(),
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, "application/json")
-            )
-        }
-
-        val httpClient = HttpClientFactory.create(engine)
+        val engine = createTestGetEngine(
+            expectedPath = AUDIO_SEARCH_URL,
+            expectedUrlParameters = mapOf(
+                "q" to QUERY,
+                "count" to DEFAULT_AUDIO_COUNT.toString(),
+                "offset" to DEFAULT_AUDIO_OFFSET.toString(),
+                "autocomplete" to DEFAULT_AUDIO_AUTOCOMPLETE_MODE.toString(),
+                "sort" to DEFAULT_AUDIO_SORT_MODE.toString()
+            ),
+            testJsonsPath = "audio/search.json"
+        )
         val api = VkApiSource(
-            httpClient = httpClient,
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
             tokenStorage = TestTokenStorage()
         )
         assertIs<Result.Success<VkApiResponse.AudioSearch>>(api.searchAudio(QUERY))
@@ -401,71 +360,43 @@ class VkApiSourceTest {
 
     @Test
     fun `searchAudio with custom offset and count sends right request` () = runTest {
-        val engine = MockEngine { request ->
-            //standard
-            assertEquals(HttpMethod.Get, request.method)
-            assertEquals(Url(BASE_URL).host, request.url.host)
-            assertEquals(DEFAULT_HTTPS.toString(),request.url.parameters["https"])
-            assertEquals(DEFAULT_LANG,request.url.parameters["lang"])
-            assertEquals(DEFAULT_EXTENDED.toString(),request.url.parameters["extended"])
-            assertEquals(DEFAULT_V,request.url.parameters["v"])
-            assertEquals(VkMobileAppClient.userAgent, request.headers[USER_AGENT_KEY])
-            assertEquals(TEST_TOKEN, request.url.parameters[ACCESS_TOKEN_KEY])
-
-            //not standard
-            assertEquals("/method/${AUDIO_SEARCH_URL}",request.url.encodedPath)
-            assertEquals(QUERY, request.url.parameters["q"])
-            assertEquals(SEARCH_AUDIO_COUNT.toString(), request.url.parameters["count"])
-            assertEquals(SEARCH_AUDIO_OFFSET.toString(), request.url.parameters["offset"])
-            assertEquals(DEFAULT_AUDIO_AUTOCOMPLETE_MODE.toString(), request.url.parameters["autocomplete"])
-            assertEquals(DEFAULT_AUDIO_SORT_MODE.toString(), request.url.parameters["sort"])
-
-            respond(
-                content = Resource("json_responses/audio/search.json").readText(),
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, "application/json")
-            )
-        }
-
-        val httpClient = HttpClientFactory.create(engine)
+        val engine = createTestGetEngine(
+            expectedPath = AUDIO_SEARCH_URL,
+            expectedUrlParameters = mapOf(
+                "q" to QUERY,
+                "count" to SEARCH_AUDIO_COUNT.toString(),
+                "offset" to SEARCH_AUDIO_OFFSET.toString(),
+                "autocomplete" to DEFAULT_AUDIO_AUTOCOMPLETE_MODE.toString(),
+                "sort" to DEFAULT_AUDIO_SORT_MODE.toString()
+            ),
+            testJsonsPath = "audio/search.json"
+        )
         val api = VkApiSource(
-            httpClient = httpClient,
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
             tokenStorage = TestTokenStorage()
         )
         assertIs<Result.Success<VkApiResponse.AudioSearch>>(
-            api.searchAudio(QUERY, PLAYLIST_COUNT, PLAYLIST_OFFSET)
+            api.searchAudio(QUERY, SEARCH_AUDIO_COUNT, SEARCH_AUDIO_OFFSET)
         )
     }
 
     @Test
     fun `searchPlaylists sends right request` () = runTest {
-        val engine = MockEngine { request ->
-            //standard
-            assertEquals(HttpMethod.Get, request.method)
-            assertEquals(Url(BASE_URL).host, request.url.host)
-            assertEquals(DEFAULT_HTTPS.toString(),request.url.parameters["https"])
-            assertEquals(DEFAULT_LANG,request.url.parameters["lang"])
-            assertEquals(DEFAULT_EXTENDED.toString(),request.url.parameters["extended"])
-            assertEquals(DEFAULT_V,request.url.parameters["v"])
-            assertEquals(VkMobileAppClient.userAgent, request.headers[USER_AGENT_KEY])
-            assertEquals(TEST_TOKEN, request.url.parameters[ACCESS_TOKEN_KEY])
-
-            //not standard
-            assertEquals("/method/${AUDIO_SEARCH_PLAYLIST_URL}",request.url.encodedPath)
-            assertEquals(QUERY, request.url.parameters["q"])
-            assertEquals(DEFAULT_PLAYLIST_COUNT.toString(), request.url.parameters["count"])
-            assertEquals(DEFAULT_PLAYLIST_OFFSET.toString(), request.url.parameters["offset"])
-
-            respond(
-                content = Resource("json_responses/audio/search_playlists.json").readText(),
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, "application/json")
-            )
-        }
-
-        val httpClient = HttpClientFactory.create(engine)
+        val engine = createTestGetEngine(
+            expectedPath = AUDIO_SEARCH_PLAYLIST_URL,
+            expectedUrlParameters = mapOf(
+                "q" to QUERY,
+                "count" to DEFAULT_PLAYLIST_COUNT.toString(),
+                "offset" to DEFAULT_PLAYLIST_OFFSET.toString()
+            ),
+            testJsonsPath = "audio/search_playlists.json"
+        )
         val api = VkApiSource(
-            httpClient = httpClient,
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
             tokenStorage = TestTokenStorage()
         )
         assertIs<Result.Success<VkApiResponse.AudioSearchPlaylists>>(api.searchPlaylists(QUERY))
@@ -473,33 +404,19 @@ class VkApiSourceTest {
 
     @Test
     fun `searchPlaylists with custom offset and count sends right request` () = runTest {
-        val engine = MockEngine { request ->
-            //standard
-            assertEquals(HttpMethod.Get, request.method)
-            assertEquals(Url(BASE_URL).host, request.url.host)
-            assertEquals(DEFAULT_HTTPS.toString(),request.url.parameters["https"])
-            assertEquals(DEFAULT_LANG,request.url.parameters["lang"])
-            assertEquals(DEFAULT_EXTENDED.toString(),request.url.parameters["extended"])
-            assertEquals(DEFAULT_V,request.url.parameters["v"])
-            assertEquals(VkMobileAppClient.userAgent, request.headers[USER_AGENT_KEY])
-            assertEquals(TEST_TOKEN, request.url.parameters[ACCESS_TOKEN_KEY])
-
-            //not standard
-            assertEquals("/method/${AUDIO_SEARCH_PLAYLIST_URL}",request.url.encodedPath)
-            assertEquals(QUERY, request.url.parameters["q"])
-            assertEquals(SEARCH_PLAYLIST_COUNT.toString(), request.url.parameters["count"])
-            assertEquals(SEARCH_PLAYLIST_OFFSET.toString(), request.url.parameters["offset"])
-
-            respond(
-                content = Resource("json_responses/audio/search_playlists.json").readText(),
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, "application/json")
-            )
-        }
-
-        val httpClient = HttpClientFactory.create(engine)
+        val engine = createTestGetEngine(
+            expectedPath = AUDIO_SEARCH_PLAYLIST_URL,
+            expectedUrlParameters = mapOf(
+                "q" to QUERY,
+                "count" to SEARCH_PLAYLIST_COUNT.toString(),
+                "offset" to SEARCH_PLAYLIST_OFFSET.toString()
+            ),
+            testJsonsPath = "audio/search_playlists.json"
+        )
         val api = VkApiSource(
-            httpClient = httpClient,
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
             tokenStorage = TestTokenStorage()
         )
         assertIs<Result.Success<VkApiResponse.AudioSearchPlaylists>>(
@@ -509,31 +426,17 @@ class VkApiSourceTest {
 
     @Test
     fun `getAudioById sends right request` () = runTest {
-        val engine = MockEngine { request ->
-            //standard
-            assertEquals(HttpMethod.Get, request.method)
-            assertEquals(Url(BASE_URL).host, request.url.host)
-            assertEquals(DEFAULT_HTTPS.toString(),request.url.parameters["https"])
-            assertEquals(DEFAULT_LANG,request.url.parameters["lang"])
-            assertEquals(DEFAULT_EXTENDED.toString(),request.url.parameters["extended"])
-            assertEquals(DEFAULT_V,request.url.parameters["v"])
-            assertEquals(VkMobileAppClient.userAgent, request.headers[USER_AGENT_KEY])
-            assertEquals(TEST_TOKEN, request.url.parameters[ACCESS_TOKEN_KEY])
-
-            //not standard
-            assertEquals("/method/${AUDIO_GET_BY_ID_URL}",request.url.encodedPath)
-            assertEquals(AUDIO_IDS.joinToString(","), request.url.parameters["audios"])
-
-            respond(
-                content = Resource("json_responses/audio/get_by_id.json").readText(),
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, "application/json")
-            )
-        }
-
-        val httpClient = HttpClientFactory.create(engine)
+        val engine = createTestGetEngine(
+            expectedPath = AUDIO_GET_BY_ID_URL,
+            expectedUrlParameters = mapOf(
+                "audios" to AUDIO_IDS.joinToString(",")
+            ),
+            testJsonsPath = "audio/get_by_id.json"
+        )
         val api = VkApiSource(
-            httpClient = httpClient,
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
             tokenStorage = TestTokenStorage()
         )
         assertIs<Result.Success<VkApiResponse.AudioGetById>>(
@@ -543,31 +446,13 @@ class VkApiSourceTest {
 
     @Test
     fun `getAudioById with empty ids have DataError` () = runTest {
-        val engine = MockEngine { request ->
-            //standard
-            assertEquals(HttpMethod.Get, request.method)
-            assertEquals(Url(BASE_URL).host, request.url.host)
-            assertEquals(DEFAULT_HTTPS.toString(),request.url.parameters["https"])
-            assertEquals(DEFAULT_LANG,request.url.parameters["lang"])
-            assertEquals(DEFAULT_EXTENDED.toString(),request.url.parameters["extended"])
-            assertEquals(DEFAULT_V,request.url.parameters["v"])
-            assertEquals(VkMobileAppClient.userAgent, request.headers[USER_AGENT_KEY])
-            assertEquals(TEST_TOKEN, request.url.parameters[ACCESS_TOKEN_KEY])
-
-            //not standard
-            assertEquals("/method/${AUDIO_GET_BY_ID_URL}",request.url.encodedPath)
-            assertEquals("", request.url.parameters["audios"])
-
-            respond(
-                content = Resource("json_responses/audio/get_by_id.json").readText(),
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, "application/json")
-            )
+        val engine = MockEngine {
+            error("HTTP request must not be sent for empty audio ids")
         }
-
-        val httpClient = HttpClientFactory.create(engine)
         val api = VkApiSource(
-            httpClient = httpClient,
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
             tokenStorage = TestTokenStorage()
         )
         assertIs<Result.Error<DataError.Remote.Api>>(api.getAudioById(emptyList()))
@@ -575,33 +460,19 @@ class VkApiSourceTest {
 
     @Test
     fun `searchAlbums sends right request` () = runTest {
-        val engine = MockEngine { request ->
-            //standard
-            assertEquals(HttpMethod.Get, request.method)
-            assertEquals(Url(BASE_URL).host, request.url.host)
-            assertEquals(DEFAULT_HTTPS.toString(),request.url.parameters["https"])
-            assertEquals(DEFAULT_LANG,request.url.parameters["lang"])
-            assertEquals(DEFAULT_EXTENDED.toString(),request.url.parameters["extended"])
-            assertEquals(DEFAULT_V,request.url.parameters["v"])
-            assertEquals(VkMobileAppClient.userAgent, request.headers[USER_AGENT_KEY])
-            assertEquals(TEST_TOKEN, request.url.parameters[ACCESS_TOKEN_KEY])
-
-            //not standard
-            assertEquals("/method/${AUDIO_SEARCH_ALBUMS_URL}",request.url.encodedPath)
-            assertEquals(QUERY, request.url.parameters["q"])
-            assertEquals(DEFAULT_PLAYLIST_COUNT.toString(), request.url.parameters["count"])
-            assertEquals(DEFAULT_PLAYLIST_OFFSET.toString(), request.url.parameters["offset"])
-
-            respond(
-                content = Resource("json_responses/audio/search_albums.json").readText(),
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, "application/json")
-            )
-        }
-
-        val httpClient = HttpClientFactory.create(engine)
+        val engine = createTestGetEngine(
+            expectedPath = AUDIO_SEARCH_ALBUMS_URL,
+            expectedUrlParameters = mapOf(
+                "q" to QUERY,
+                "count" to DEFAULT_PLAYLIST_COUNT.toString(),
+                "offset" to DEFAULT_PLAYLIST_OFFSET.toString()
+            ),
+            testJsonsPath = "audio/search_albums.json"
+        )
         val api = VkApiSource(
-            httpClient = httpClient,
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
             tokenStorage = TestTokenStorage()
         )
         assertIs<Result.Success<VkApiResponse.AudioSearchAlbums>>(api.searchAlbums(QUERY))
@@ -609,68 +480,40 @@ class VkApiSourceTest {
 
     @Test
     fun `searchAlbums with custom offset and count sends right request` () = runTest {
-        val engine = MockEngine { request ->
-            //standard
-            assertEquals(HttpMethod.Get, request.method)
-            assertEquals(Url(BASE_URL).host, request.url.host)
-            assertEquals(DEFAULT_HTTPS.toString(),request.url.parameters["https"])
-            assertEquals(DEFAULT_LANG,request.url.parameters["lang"])
-            assertEquals(DEFAULT_EXTENDED.toString(),request.url.parameters["extended"])
-            assertEquals(DEFAULT_V,request.url.parameters["v"])
-            assertEquals(VkMobileAppClient.userAgent, request.headers[USER_AGENT_KEY])
-            assertEquals(TEST_TOKEN, request.url.parameters[ACCESS_TOKEN_KEY])
-
-            //not standard
-            assertEquals("/method/${AUDIO_SEARCH_ALBUMS_URL}",request.url.encodedPath)
-            assertEquals(QUERY, request.url.parameters["q"])
-            assertEquals(SEARCH_ALBUMS_COUNT.toString(), request.url.parameters["count"])
-            assertEquals(SEARCH_ALBUMS_OFFSET.toString(), request.url.parameters["offset"])
-
-            respond(
-                content = Resource("json_responses/audio/search_albums.json").readText(),
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, "application/json")
-            )
-        }
-
-        val httpClient = HttpClientFactory.create(engine)
+        val engine = createTestGetEngine(
+            expectedPath = AUDIO_SEARCH_ALBUMS_URL,
+            expectedUrlParameters = mapOf(
+                "q" to QUERY,
+                "count" to SEARCH_ALBUMS_COUNT.toString(),
+                "offset" to SEARCH_ALBUMS_OFFSET.toString()
+            ),
+            testJsonsPath = "audio/search_albums.json"
+        )
         val api = VkApiSource(
-            httpClient = httpClient,
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
             tokenStorage = TestTokenStorage()
         )
         assertIs<Result.Success<VkApiResponse.AudioSearchAlbums>>(
-            api.searchAlbums(QUERY, SEARCH_PLAYLIST_COUNT, SEARCH_PLAYLIST_OFFSET)
+            api.searchAlbums(QUERY, SEARCH_ALBUMS_COUNT, SEARCH_ALBUMS_OFFSET)
         )
     }
 
     @Test
     fun `getPopular sends right request` () = runTest {
-        val engine = MockEngine { request ->
-            //standard
-            assertEquals(HttpMethod.Get, request.method)
-            assertEquals(Url(BASE_URL).host, request.url.host)
-            assertEquals(DEFAULT_HTTPS.toString(),request.url.parameters["https"])
-            assertEquals(DEFAULT_LANG,request.url.parameters["lang"])
-            assertEquals(DEFAULT_EXTENDED.toString(),request.url.parameters["extended"])
-            assertEquals(DEFAULT_V,request.url.parameters["v"])
-            assertEquals(VkMobileAppClient.userAgent, request.headers[USER_AGENT_KEY])
-            assertEquals(TEST_TOKEN, request.url.parameters[ACCESS_TOKEN_KEY])
-
-            //not standard
-            assertEquals("/method/${AUDIO_GET_POPULAR_URL}",request.url.encodedPath)
-            assertEquals(DEFAULT_AUDIO_COUNT.toString(), request.url.parameters["count"])
-            assertEquals(DEFAULT_AUDIO_OFFSET.toString(), request.url.parameters["offset"])
-
-            respond(
-                content = Resource("json_responses/audio/get_popular.json").readText(),
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, "application/json")
-            )
-        }
-
-        val httpClient = HttpClientFactory.create(engine)
+        val engine = createTestGetEngine(
+            expectedPath = AUDIO_GET_POPULAR_URL,
+            expectedUrlParameters = mapOf(
+                "count" to DEFAULT_AUDIO_COUNT.toString(),
+                "offset" to DEFAULT_AUDIO_OFFSET.toString()
+            ),
+            testJsonsPath = "audio/get_popular.json"
+        )
         val api = VkApiSource(
-            httpClient = httpClient,
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
             tokenStorage = TestTokenStorage()
         )
         assertIs<Result.Success<VkApiResponse.AudioGetPopular>>(api.getPopular())
@@ -678,39 +521,25 @@ class VkApiSourceTest {
 
     @Test
     fun `getPopular with custom offset and count sends right request` () = runTest {
-        val engine = MockEngine { request ->
-            //standard
-            assertEquals(HttpMethod.Get, request.method)
-            assertEquals(Url(BASE_URL).host, request.url.host)
-            assertEquals(DEFAULT_HTTPS.toString(),request.url.parameters["https"])
-            assertEquals(DEFAULT_LANG,request.url.parameters["lang"])
-            assertEquals(DEFAULT_EXTENDED.toString(),request.url.parameters["extended"])
-            assertEquals(DEFAULT_V,request.url.parameters["v"])
-            assertEquals(VkMobileAppClient.userAgent, request.headers[USER_AGENT_KEY])
-            assertEquals(TEST_TOKEN, request.url.parameters[ACCESS_TOKEN_KEY])
-
-            //not standard
-            assertEquals("/method/${AUDIO_GET_POPULAR_URL}",request.url.encodedPath)
-            assertEquals(POPULAR_COUNT.toString(), request.url.parameters["count"])
-            assertEquals(POPULAR_OFFSET.toString(), request.url.parameters["offset"])
-
-            respond(
-                content = Resource("json_responses/audio/get_popular.json").readText(),
-                status = HttpStatusCode.OK,
-                headers = headersOf(HttpHeaders.ContentType, "application/json")
-            )
-        }
-
-        val httpClient = HttpClientFactory.create(engine)
+        val engine = createTestGetEngine(
+            expectedPath = AUDIO_GET_POPULAR_URL,
+            expectedUrlParameters = mapOf(
+                "count" to POPULAR_COUNT.toString(),
+                "offset" to POPULAR_OFFSET.toString()
+            ),
+            testJsonsPath = "audio/get_popular.json"
+        )
         val api = VkApiSource(
-            httpClient = httpClient,
+            httpClient = TestHttpClientFactory.create(engine),
+            appClient = TestAppClient,
+            json = testJson,
             tokenStorage = TestTokenStorage()
         )
         assertIs<Result.Success<VkApiResponse.AudioGetPopular>>(
-            api.getPopular(SEARCH_PLAYLIST_COUNT, SEARCH_PLAYLIST_OFFSET)
+            api.getPopular(POPULAR_COUNT, POPULAR_OFFSET)
         )
     }
-    
+
     //EMPTY TOKEN ===============================================================================
     @Test
     fun `getProfileInfo without token returns NotAuthorized` () = runTest {
@@ -776,4 +605,9 @@ class VkApiSourceTest {
     }
 
     //POST =====================================================================================
+
+    @Test
+    fun `addAudio sends right form` () = runTest {
+
+    }
 }
