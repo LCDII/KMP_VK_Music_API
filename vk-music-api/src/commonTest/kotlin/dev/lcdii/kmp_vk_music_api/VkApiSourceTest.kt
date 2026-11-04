@@ -40,6 +40,8 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.HttpRequestData
+import io.ktor.client.request.forms.FormDataContent
+import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -170,6 +172,17 @@ class VkApiSourceTest {
         assertEquals(TEST_TOKEN, request.url.parameters[ACCESS_TOKEN_KEY])
     }
 
+    private fun assertEqualsStandardPostRequestParameters(request: HttpRequestData) {
+        //standard
+        assertEquals(HttpMethod.Post, request.method)
+        assertEquals(Url(BASE_URL).host, request.url.host)
+        assertEquals(DEFAULT_HTTPS.toString(),request.url.parameters["https"])
+        assertEquals(DEFAULT_LANG,request.url.parameters["lang"])
+        assertEquals(DEFAULT_EXTENDED.toString(),request.url.parameters["extended"])
+        assertEquals(DEFAULT_V,request.url.parameters["v"])
+        assertEquals(VkMobileAppClient.userAgent, request.headers[USER_AGENT_KEY])
+    }
+
     private fun createTestGetEngine(
         expectedPath: String,
         expectedUrlParameters: Map<String, String> = emptyMap(),
@@ -182,6 +195,33 @@ class VkApiSourceTest {
         }
         respond(
             content = Resource("json_responses/${testJsonsPath}").readText(),
+            status = HttpStatusCode.OK,
+            headers = headersOf(HttpHeaders.ContentType, "application/json")
+        )
+    }
+
+    private fun createTestPostEngine(
+        expectedPath: String,
+        expectedFormParameters: Map<String, String>,
+        testJsonsPath: String
+    ): MockEngine = MockEngine { request ->
+        assertEqualsStandardPostRequestParameters(request)
+        assertEquals("/method/$expectedPath", request.url.encodedPath)
+
+        val body = assertIs<FormDataContent>(request.body)
+
+        assertEquals(
+            ContentType.Application.FormUrlEncoded,
+            body.contentType.withoutParameters()
+        )//application/x-www-form-urlencoded
+        assertEquals(TEST_TOKEN, body.formData[ACCESS_TOKEN_KEY])
+
+        for ((key, value) in expectedFormParameters) {
+            assertEquals(value, body.formData[key])
+        }
+
+        respond(
+            content = Resource("json_responses/$testJsonsPath").readText(),
             status = HttpStatusCode.OK,
             headers = headersOf(HttpHeaders.ContentType, "application/json")
         )
