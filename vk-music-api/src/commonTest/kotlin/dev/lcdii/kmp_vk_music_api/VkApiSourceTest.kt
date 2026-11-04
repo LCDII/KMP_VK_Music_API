@@ -41,8 +41,6 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Url
 import io.ktor.http.headersOf
-import kotlin.test.assertFails
-import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 
 private const val TEST_TOKEN: String = "token"
@@ -87,6 +85,39 @@ class VkApiSourceTest {
         }
 
     }
+
+    private class TestEmptyTokenStorage(
+        private var token: String? = null
+    ): TokenStorage {
+        override suspend fun saveToken(token: String) {
+            this.token = token
+        }
+
+        override suspend fun getToken(): String? {
+            return this.token
+        }
+
+        override suspend fun clearToken() {
+            token = null
+        }
+
+        override suspend fun replaceToken(token: String) {
+            saveToken(token)
+        }
+
+    }
+
+    private fun createApiWithoutToken(): VkApiSource {
+        val engine = MockEngine {
+            error("error")
+        }
+        return VkApiSource(
+            httpClient = HttpClientFactory.create(engine),
+            tokenStorage = TestEmptyTokenStorage()
+        )
+    }
+
+
 
     @Test
     fun `getProfileInfo sends right request` () = runTest {
@@ -679,5 +710,70 @@ class VkApiSourceTest {
             api.getPopular(SEARCH_PLAYLIST_COUNT, SEARCH_PLAYLIST_OFFSET)
         )
     }
+    
+    //EMPTY TOKEN ===============================================================================
+    @Test
+    fun `getProfileInfo without token returns NotAuthorized` () = runTest {
+        assertIs<Result.Error<DataError.Remote.NotAuthorized>>(
+            createApiWithoutToken().getProfileInfo()
+        )
+    }
+
+    @Test
+    fun `getUsersAudioCount without token returns NotAuthorized` () = runTest {
+        assertIs<Result.Error<DataError.Remote.NotAuthorized>>(
+            createApiWithoutToken().getUsersAudioCount(USER_ID)
+        )
+    }
+
+    @Test
+    fun `getUsersAudio without token returns NotAuthorized` () = runTest {
+        assertIs<Result.Error<DataError.Remote.NotAuthorized>>(
+            createApiWithoutToken().getUsersAudio(USER_ID)
+        )
+    }
+
+    @Test
+    fun `getUsersPlaylists without token returns NotAuthorized` () = runTest {
+        assertIs<Result.Error<DataError.Remote.NotAuthorized>>(
+            createApiWithoutToken().getUsersPlaylists(USER_ID)
+        )
+    }
+
+    @Test
+    fun `searchAudio without token returns NotAuthorized` () = runTest {
+        assertIs<Result.Error<DataError.Remote.NotAuthorized>>(
+            createApiWithoutToken().searchAudio(QUERY)
+        )
+    }
+
+    @Test
+    fun `searchPlaylists without token returns NotAuthorized` () = runTest {
+        assertIs<Result.Error<DataError.Remote.NotAuthorized>>(
+            createApiWithoutToken().searchPlaylists(QUERY)
+        )
+    }
+
+    @Test
+    fun `getAudioById without token returns NotAuthorized` () = runTest {
+        assertIs<Result.Error<DataError.Remote.NotAuthorized>>(
+            createApiWithoutToken().getAudioById(AUDIO_IDS)
+        )
+    }
+
+    @Test
+    fun `searchAlbums without token returns NotAuthorized` () = runTest {
+        assertIs<Result.Error<DataError.Remote.NotAuthorized>>(
+            createApiWithoutToken().searchAlbums(QUERY)
+        )
+    }
+
+    @Test
+    fun `getPopular without token returns NotAuthorized` () = runTest {
+        assertIs<Result.Error<DataError.Remote.NotAuthorized>>(
+            createApiWithoutToken().getPopular()
+        )
+    }
+
     //POST =====================================================================================
 }
