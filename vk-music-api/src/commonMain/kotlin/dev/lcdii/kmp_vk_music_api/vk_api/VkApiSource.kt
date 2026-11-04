@@ -293,6 +293,78 @@ public class VkApiSource(
         }
     }
 
+    public suspend fun getById(
+        audioIds: List<String>
+    ): Result<VkApiResponse.AudioGetById, DataError.Remote> {
+        val token = tokenStorage.getToken()
+            ?: return Result.Error(DataError.Remote.NotAuthorized)
+        return safeCall<VkApiResponse.AudioGetById>(json) {
+            val request = VkApiRequest.GetById(
+                audioIds = audioIds,
+                headers = mapOf(USER_AGENT_KEY to appClient.userAgent)
+            )
+            httpClient.get {
+                url.appendPathSegments(request.path)
+                for ((key, value) in request.headers) {
+                    header(key, value)
+                }
+                parameter("audios", request.parameters.audioIds.joinToString(","))
+                parameter(ACCESS_TOKEN_KEY, token)
+            }
+        }
+    }
+
+    public suspend fun searchAlbums(
+        query: String,
+        count: Int? = null,
+        offset: Int? = null
+    ): Result<VkApiResponse.AudioSearchAlbums, DataError.Remote> {
+        val token = tokenStorage.getToken()
+            ?: return Result.Error(DataError.Remote.NotAuthorized)
+        return safeCall<VkApiResponse.AudioSearchAlbums>(json) {
+            val request = VkApiRequest.SearchAlbums(
+                query = query,
+                count = count,
+                offset = offset,
+                headers = mapOf(USER_AGENT_KEY to appClient.userAgent)
+            )
+            httpClient.get {
+                url.appendPathSegments(request.path)
+                for ((key, value) in request.headers) {
+                    header(key, value)
+                }
+                parameter("q", request.parameters.query)
+                parameter("count", request.parameters.count)
+                parameter("offset", request.parameters.offset)
+                parameter(ACCESS_TOKEN_KEY, token)
+            }
+        }
+    }
+
+    public suspend fun getPopular(
+        count: Int? = null,
+        offset: Int? = null
+    ): Result<VkApiResponse.AudioGetPopular, DataError.Remote> {
+        val token = tokenStorage.getToken()
+            ?: return Result.Error(DataError.Remote.NotAuthorized)
+        return safeCall<VkApiResponse.AudioGetPopular>(json) {
+            val request = VkApiRequest.GetPopular(
+                count = count,
+                offset = offset,
+                headers = mapOf(USER_AGENT_KEY to appClient.userAgent)
+            )
+            httpClient.get {
+                url.appendPathSegments(request.path)
+                for ((key, value) in request.headers) {
+                    header(key, value)
+                }
+                parameter("count", request.parameters.count)
+                parameter("offset", request.parameters.offset)
+                parameter(ACCESS_TOKEN_KEY, token)
+            }
+        }
+    }
+
     override suspend fun searchPlaylists(
         query: String,
         count: Int?,

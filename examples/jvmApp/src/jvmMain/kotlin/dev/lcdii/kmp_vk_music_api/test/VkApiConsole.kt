@@ -272,6 +272,46 @@ fun main(): Unit = runBlocking {
                     }
 
                     "14" -> {
+                        print("audio_ids (owner_id_audio_id, несколько через запятую): ")
+                        val audioIds = readln()
+                            .split(',')
+                            .map { it.trim() }
+                            .filter { it.isNotEmpty() }
+
+                        printResult("getById", api.getById(audioIds)) { response ->
+                            printSongs(response.items)
+                        }
+                    }
+
+                    "15" -> {
+                        print("query: ")
+                        val query = readln()
+
+                        print("count (Enter = по умолчанию): ")
+                        val count = readln().trim().toIntOrNull()
+
+                        print("offset (Enter = по умолчанию): ")
+                        val offset = readln().trim().toIntOrNull()
+
+                        printResult("searchAlbums", api.searchAlbums(query, count, offset)) { response ->
+                            println("  count = ${response.count}")
+                            printPlaylists(response.items)
+                        }
+                    }
+
+                    "16" -> {
+                        print("count (Enter = по умолчанию): ")
+                        val count = readln().trim().toIntOrNull()
+
+                        print("offset (Enter = по умолчанию): ")
+                        val offset = readln().trim().toIntOrNull()
+
+                        printResult("getPopular", api.getPopular(count, offset)) { response ->
+                            printSongs(response.items)
+                        }
+                    }
+
+                    "17" -> {
                         tokenStorage.clearToken()
 
                         print("VK login: ")
@@ -331,7 +371,10 @@ private fun printMenu(userId: Int) {
          11) removeAudiosFromPlaylist
          12) createPlaylist
          13) deletePlaylist
-         14) войти заново
+         14) getById
+         15) searchAlbums
+         16) getPopular
+         17) войти заново
         Выберите пункт: 
         """.trimIndent() + " "
     )
