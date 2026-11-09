@@ -425,12 +425,20 @@ private fun printPlaylists(playlists: List<AlbumResponse>) {
 private fun describeError(error: DataError): String = when (error) {
     is DataError.Remote.Api -> when (val apiError = error.error) {
         is VkApiError.CodeError -> "VK error ${apiError.code}: ${apiError.message}"
-        is VkApiError.TextError -> buildString {
-            append("VK ")
-            append(apiError.type)
+        is VkApiError.UnknownError -> "VK unknown: ${apiError.json}"
+        is VkApiError.Auth.Captcha -> "VK: нужна капча"
+        is VkApiError.Auth.Validation -> buildString {
+            append("VK validation")
             apiError.description?.let { append(": ").append(it) }
         }
-        is VkApiError.UnknownError -> "VK unknown: ${apiError.json}"
+        is VkApiError.Auth.InvalidValidationCode ->
+            "VK invalid validation code: ${apiError.description.orEmpty()}"
+        is VkApiError.Auth.InvalidClient ->
+            "VK invalid client: ${apiError.description.orEmpty()}"
+        is VkApiError.Auth.InvalidToken ->
+            "VK invalid token: ${apiError.description.orEmpty()}"
+        is VkApiError.Auth.Unknown ->
+            "VK unknown auth error: ${apiError.description.orEmpty()}"
     }
     DataError.Remote.NotAuthorized -> "не авторизован"
     DataError.Remote.NoInternet -> "нет интернета"

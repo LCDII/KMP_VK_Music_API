@@ -6,16 +6,19 @@ import android.content.DialogInterface
 import android.text.InputType
 import android.widget.EditText
 import android.widget.LinearLayout
+import dev.lcdii.kmp_vk_music_api.core.DataError
+import dev.lcdii.kmp_vk_music_api.core.Result
 import dev.lcdii.kmp_vk_music_api.core.VkApiError
 import dev.lcdii.kmp_vk_music_api.vk_api.domain.VkValidationResolver
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 internal class AndroidVkValidationResolver(
     private val activity: Activity
 ) : VkValidationResolver {
-    override suspend fun resolve(error: VkApiError.TextError): String =
+    override suspend fun resolve(
+        error: VkApiError.Auth.Validation
+    ): Result<String, DataError> =
         suspendCancellableCoroutine { continuation ->
             activity.runOnUiThread {
                 val input = EditText(activity).apply {
@@ -36,9 +39,7 @@ internal class AndroidVkValidationResolver(
                     .setNegativeButton("Cancel") { _, _ ->
                         if (!completed) {
                             completed = true
-                            continuation.resumeWithException(
-                                IllegalStateException("VK validation was cancelled")
-                            )
+                            continuation.resume(Result.Error(DataError.Remote.Unknown))
                         }
                     }
                     .setPositiveButton("Continue", null)
@@ -55,7 +56,7 @@ internal class AndroidVkValidationResolver(
                         if (!completed) {
                             completed = true
                             dialog.dismiss()
-                            continuation.resume(code)
+                            continuation.resume(Result.Success(code))
                         }
                     }
                 }
@@ -63,9 +64,7 @@ internal class AndroidVkValidationResolver(
                 dialog.setOnCancelListener {
                     if (!completed) {
                         completed = true
-                        continuation.resumeWithException(
-                            IllegalStateException("VK validation was cancelled")
-                        )
+                        continuation.resume(Result.Error(DataError.Remote.Unknown))
                     }
                 }
 

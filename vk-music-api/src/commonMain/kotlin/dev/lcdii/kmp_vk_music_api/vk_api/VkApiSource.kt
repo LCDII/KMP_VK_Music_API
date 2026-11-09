@@ -1,15 +1,13 @@
 package dev.lcdii.kmp_vk_music_api.vk_api
 
 import dev.lcdii.kmp_vk_music_api.core.ACCESS_TOKEN_KEY
-import dev.lcdii.kmp_vk_music_api.core.DEFAULT_V
 import dev.lcdii.kmp_vk_music_api.core.DataError
 import dev.lcdii.kmp_vk_music_api.core.Result
-import dev.lcdii.kmp_vk_music_api.core.TextErrorType
 import dev.lcdii.kmp_vk_music_api.core.USER_AGENT_KEY
 import dev.lcdii.kmp_vk_music_api.core.VkApiError
 import dev.lcdii.kmp_vk_music_api.vk_api.data.VkApiJson
 import dev.lcdii.kmp_vk_music_api.vk_api.data.VkMobileAppClient
-import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.AuthPayload
+import dev.lcdii.kmp_vk_music_api.vk_api.domain.AuthFlow
 import dev.lcdii.kmp_vk_music_api.vk_api.domain.TokenStorage
 import dev.lcdii.kmp_vk_music_api.vk_api.domain.PlaylistAttributes
 import dev.lcdii.kmp_vk_music_api.vk_api.domain.VkApiRequest
@@ -56,112 +54,24 @@ public class VkApiSource(
         captchaResolver: VkCaptchaResolver,
         validationResolver: VkValidationResolver
     ): Result<VkApiResponse.AuthResponse, DataError> {
-        var successToken: String? = null
-        var validationCode: String? = null
-        var validationError: VkApiError.TextError? = null
-
-        while (true) {
-            val request = VkApiRequest.Authenticate(
-                login = login,
-                password = password,
-                appClient = appClient,
-                successToken = successToken,
-                code = validationCode,
-                headers = mapOf(USER_AGENT_KEY to appClient.userAgent)
-            )
-
-            when (val result = safeCall<AuthPayload>(json) {
-                executeAuthenticate(request)
-            }) {
-                is Result.Success -> {
-                    tokenStorage.saveToken(result.data.accessToken)
-                    return Result.Success(
-                        VkApiResponse.AuthResponse(userId = result.data.userId)
-                    )
-                }
-
-                is Result.Error -> {
-                    val apiError = (result.error as? DataError.Remote.Api)?.error
-                        ?: return Result.Error(result.error)
-
-                    when (apiError) {
-                        is VkApiError.TextError -> when (apiError.type) {
-                            TextErrorType.NEED_CAPTCHA -> {
-                                val redirectUri = apiError.redirectUri
-                                    ?: return Result.Error(result.error)
-                                when (val captchaResult = captchaResolver.resolve(redirectUri)) {
-                                    is Result.Success -> successToken = captchaResult.data
-                                    is Result.Error -> return Result.Error(captchaResult.error)
-                                }
-                            }
-
-                            TextErrorType.NEED_VALIDATION -> {
-                                validationError = apiError
-                                when (val validationResult = requestValidationCode(apiError)) {
-                                    is Result.Error -> return Result.Error(validationResult.error)
-                                    is Result.Success -> {
-                                        validationCode = validationResolver.resolve(apiError)
-                                    }
-                                }
-                            }
-
-                            TextErrorType.INVALID_REQUEST -> {
-                                val previousError = validationError
-                                    ?: return Result.Error(result.error)
-                                validationCode = validationResolver.resolve(
-                                    previousError.copy(
-                                        description = apiError.description
-                                            ?: "Invalid validation code"
-                                    )
-                                )
-                            }
-
-                            else -> return Result.Error(result.error)
-                        }
-
-                        else -> return Result.Error(result.error)
-                    }
-                }
-            }
-        }
-    }
-
-    private suspend fun executeAuthenticate(
-        request: VkApiRequest.Authenticate
-    ) = httpClient.get(request.path) {
-        for ((key, value) in request.headers) {
-            header(key, value)
-        }
-        parameter("grant_type", "password")
-        parameter("client_id", request.parameters.clientId)
-        parameter("client_secret", request.parameters.clientSecret)
-        parameter("username", request.parameters.login)
-        parameter("password", request.parameters.password)
-        parameter("scope", "audio,offline")
-        parameter("2fa_supported", 1)
-        parameter("force_sms", 1)
-        parameter("v", DEFAULT_V)
-        request.parameters.successToken?.let { parameter("success_token", it) }
-        request.parameters.code?.let { parameter("code", it) }
-    }
-
-    private suspend fun requestValidationCode(
-        error: VkApiError.TextError
-    ): Result<VkApiResponse.ValidatePhoneResponse, DataError.Remote> {
-        val sid = error.validationSid
-            ?: return Result.Error(DataError.Remote.Api(error))
-        val request = VkApiRequest.ValidatePhone(
-            sid = sid,
-            headers = mapOf(USER_AGENT_KEY to appClient.userAgent)
+        val flow = AuthFlow(
+            httpClient = httpClient,
+            appClient = appClient,
+            json = json,
+            login = login,
+            password = password,
+            captchaResolver = captchaResolver,
+            validationResolver = validationResolver,
         )
 
-        return safeCall<VkApiResponse.ValidatePhoneResponse>(json) {
-            httpClient.get(request.path) {
-                for ((key, value) in request.headers) {
-                    header(key, value)
-                }
-                parameter("sid", request.parameters.sid)
-                parameter("v", DEFAULT_V)
+        return when (val result = flow.run()) {
+            is Result.Error -> Result.Error(result.error)
+
+            is Result.Success -> {
+                tokenStorage.saveToken(result.data.accessToken)
+                Result.Success(
+                    VkApiResponse.AuthResponse(userId = result.data.userId)
+                )
             }
         }
     }
