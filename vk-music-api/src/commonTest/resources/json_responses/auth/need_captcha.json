@@ -1,0 +1,6 @@
+{
+  "error": "need_captcha",
+  "error_description": "Captcha needed",
+  "captcha_sid": "captcha_sid",
+  "redirect_uri": "https://id.vk.com/captcha?sid=captcha_sid"
+}

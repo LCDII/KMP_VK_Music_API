@@ -8,7 +8,6 @@ import dev.lcdii.kmp_vk_music_api.vk_api.JvmAuth
 import dev.lcdii.kmp_vk_music_api.vk_api.VkApiSource
 import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.AlbumResponse
 import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.SongResponse
-import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.VkApiResponse
 import dev.lcdii.kmp_vk_music_api.vk_api.domain.PlaylistAttributes
 import dev.lcdii.kmp_vk_music_api.vk_api.domain.TokenStorage
 import kotlinx.coroutines.runBlocking
@@ -25,34 +24,43 @@ fun main(): Unit = runBlocking {
         val auth = koin.get<JvmAuth>()
         val tokenStorage = koin.get<TokenStorage>()
 
-        val userId = when (val result = api.getUserId()) {
-            is Result.Success -> {
-                println("Токен найден: user_id=${result.data}")
-                result.data
+        var currentUserId: Int
+
+        if (!api.isAuthorized()) {
+            println("Нужна авторизация")
+
+            print("VK login: ")
+            val login = readln()
+
+            print("VK password: ")
+            val password = readln()
+
+            when (val authResult = auth.auth(login, password)) {
+                is Result.Error -> {
+                    println("Ошибка авторизации: ${describeError(authResult.error)}")
+                    return@runBlocking
+                }
+                is Result.Success -> Unit
             }
-            is Result.Error -> {
-                println("Нужна авторизация")
 
-                print("VK login: ")
-                val login = readln()
-
-                print("VK password: ")
-                val password = readln()
-
-                when (val authResult = auth.auth(login, password)) {
-                    is Result.Success -> (authResult.data as? VkApiResponse.AuthResponse)?.userId
-                    is Result.Error -> {
-                        println("Ошибка авторизации: ${authResult.error}")
-                        null
-                    }
+            currentUserId = when (val result = api.getUserId()) {
+                is Result.Success -> result.data
+                is Result.Error -> {
+                    println("Не удалось получить user_id: ${describeError(result.error)}")
+                    return@runBlocking
                 }
             }
-        } ?: run {
-            println("Авторизация не выполнена, выход.")
-            return@runBlocking
+        } else {
+            currentUserId = when (val result = api.getUserId()) {
+                is Result.Success -> result.data
+                is Result.Error -> {
+                    println("Не удалось получить user_id: ${describeError(result.error)}")
+                    return@runBlocking
+                }
+            }
         }
 
-        var currentUserId = userId
+        println("user_id=$currentUserId")
 
         while (true) {
             printMenu(currentUserId)
@@ -122,7 +130,7 @@ fun main(): Unit = runBlocking {
 
                         printResult(
                             "getUsersPlaylist",
-                            api.getUsersPlaylist(ownerId, count, offset)
+                            api.getUsersPlaylists(ownerId, count, offset)
                         ) { response ->
                             println("  count = ${response.count}")
                             response.nextFrom?.let { println("  next_from = $it") }
@@ -264,6 +272,46 @@ fun main(): Unit = runBlocking {
                     }
 
                     "14" -> {
+                        print("audio_ids (owner_id_audio_id, несколько через запятую): ")
+                        val audioIds = readln()
+                            .split(',')
+                            .map { it.trim() }
+                            .filter { it.isNotEmpty() }
+
+                        printResult("getAudioById", api.getAudioById(audioIds)) { response ->
+                            printSongs(response.items)
+                        }
+                    }
+
+                    "15" -> {
+                        print("query: ")
+                        val query = readln()
+
+                        print("count (Enter = по умолчанию): ")
+                        val count = readln().trim().toIntOrNull()
+
+                        print("offset (Enter = по умолчанию): ")
+                        val offset = readln().trim().toIntOrNull()
+
+                        printResult("searchAlbums", api.searchAlbums(query, count, offset)) { response ->
+                            println("  count = ${response.count}")
+                            printPlaylists(response.items)
+                        }
+                    }
+
+                    "16" -> {
+                        print("count (Enter = по умолчанию): ")
+                        val count = readln().trim().toIntOrNull()
+
+                        print("offset (Enter = по умолчанию): ")
+                        val offset = readln().trim().toIntOrNull()
+
+                        printResult("getPopular", api.getPopular(count, offset)) { response ->
+                            printSongs(response.items)
+                        }
+                    }
+
+                    "17" -> {
                         tokenStorage.clearToken()
 
                         print("VK login: ")
@@ -272,15 +320,21 @@ fun main(): Unit = runBlocking {
                         print("VK password: ")
                         val password = readln()
 
-                        when (val result = auth.auth(login, password)) {
+                        when (val authResult = auth.auth(login, password)) {
+                            is Result.Error -> {
+                                println("Ошибка авторизации: ${describeError(authResult.error)}")
+                            }
                             is Result.Success -> {
-                                val newUserId = (result.data as? VkApiResponse.AuthResponse)?.userId
-                                if (newUserId != null) {
-                                    currentUserId = newUserId
-                                    println("Теперь вы вошли как user_id=$currentUserId")
+                                when (val idResult = api.getUserId()) {
+                                    is Result.Success -> {
+                                        currentUserId = idResult.data
+                                        println("Теперь вы вошли как user_id=$currentUserId")
+                                    }
+                                    is Result.Error -> println(
+                                        "Вход выполнен, но user_id не получен: ${describeError(idResult.error)}"
+                                    )
                                 }
                             }
-                            is Result.Error -> println("Ошибка авторизации: ${result.error}")
                         }
                     }
 
@@ -317,7 +371,10 @@ private fun printMenu(userId: Int) {
          11) removeAudiosFromPlaylist
          12) createPlaylist
          13) deletePlaylist
-         14) войти заново
+         14) getAudioById
+         15) searchAlbums
+         16) getPopular
+         17) войти заново
         Выберите пункт: 
         """.trimIndent() + " "
     )
@@ -346,7 +403,7 @@ private fun printSongs(songs: List<SongResponse>) {
     songs.forEach { song ->
         println(
             "  ${song.ownerId}_${song.id} | ${song.artist} — ${song.title} | " +
-                "${song.duration}s | access_key=${song.accessKey}"
+                "${song.duration}s | access_key=${song.accessKey} | ${song.url}"
         )
     }
 }
@@ -368,12 +425,20 @@ private fun printPlaylists(playlists: List<AlbumResponse>) {
 private fun describeError(error: DataError): String = when (error) {
     is DataError.Remote.Api -> when (val apiError = error.error) {
         is VkApiError.CodeError -> "VK error ${apiError.code}: ${apiError.message}"
-        is VkApiError.TextError -> buildString {
-            append("VK ")
-            append(apiError.type)
+        is VkApiError.UnknownError -> "VK unknown: ${apiError.json}"
+        is VkApiError.Auth.Captcha -> "VK: нужна капча"
+        is VkApiError.Auth.Validation -> buildString {
+            append("VK validation")
             apiError.description?.let { append(": ").append(it) }
         }
-        is VkApiError.UnknownError -> "VK unknown: ${apiError.json}"
+        is VkApiError.Auth.InvalidValidationCode ->
+            "VK invalid validation code: ${apiError.description.orEmpty()}"
+        is VkApiError.Auth.InvalidClient ->
+            "VK invalid client: ${apiError.description.orEmpty()}"
+        is VkApiError.Auth.InvalidToken ->
+            "VK invalid token: ${apiError.description.orEmpty()}"
+        is VkApiError.Auth.Unknown ->
+            "VK unknown auth error: ${apiError.description.orEmpty()}"
     }
     DataError.Remote.NotAuthorized -> "не авторизован"
     DataError.Remote.NoInternet -> "нет интернета"

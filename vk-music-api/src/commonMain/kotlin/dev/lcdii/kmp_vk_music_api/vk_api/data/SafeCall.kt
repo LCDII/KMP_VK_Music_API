@@ -85,27 +85,43 @@ internal fun parseVkApiError(root: JsonObject): VkApiError? {
                 message = error.getValue("error_msg").jsonPrimitive.content
             )
 
-            "error" in error -> VkApiError.TextError(
-                type = TextErrorType.fromString(
-                    error.getValue("error").jsonPrimitive.content
-                ),
-                description = error["error_description"]?.jsonPrimitive?.content,
-                redirectUri = error["redirect_uri"]?.jsonPrimitive?.content,
-                validationType = error["validation_type"]?.jsonPrimitive?.content,
-                validationSid = error["validation_sid"]?.jsonPrimitive?.content
+            "error" in error -> error.toAuthError(
+                rawType = error.getValue("error").jsonPrimitive.content
             )
 
             else -> VkApiError.UnknownError(error.toString())
         }
 
-        is JsonPrimitive -> VkApiError.TextError(
-            type = TextErrorType.fromString(error.content),
-            description = root["error_description"]?.jsonPrimitive?.content,
-            redirectUri = root["redirect_uri"]?.jsonPrimitive?.content,
-            validationType = root["validation_type"]?.jsonPrimitive?.content,
-            validationSid = root["validation_sid"]?.jsonPrimitive?.content
-        )
+        is JsonPrimitive -> root.toAuthError(rawType = error.content)
 
         else -> VkApiError.UnknownError(root.toString())
+    }
+}
+
+private fun JsonObject.toAuthError(rawType: String): VkApiError.Auth {
+    val description = this["error_description"]?.jsonPrimitive?.content
+    val validationType = this["validation_type"]?.jsonPrimitive?.content
+
+    return when (TextErrorType.fromString(rawType)) {
+        TextErrorType.NEED_CAPTCHA ->
+            this["redirect_uri"]?.jsonPrimitive?.content
+                ?.let { VkApiError.Auth.Captcha(redirectUri = it) }
+                ?: VkApiError.Auth.Unknown(description)
+
+        TextErrorType.NEED_VALIDATION ->
+            this["validation_sid"]?.jsonPrimitive?.content
+                ?.let { sid ->
+                    VkApiError.Auth.Validation(
+                        validationType = validationType,
+                        sid = sid,
+                        description = description
+                    )
+                }
+                ?: VkApiError.Auth.Unknown(description)
+
+        TextErrorType.INVALID_REQUEST -> VkApiError.Auth.InvalidValidationCode(description)
+        TextErrorType.INVALID_CLIENT -> VkApiError.Auth.InvalidClient(description)
+        TextErrorType.INVALID_TOKEN -> VkApiError.Auth.InvalidToken(description)
+        TextErrorType.UNKNOWN -> VkApiError.Auth.Unknown(description)
     }
 }

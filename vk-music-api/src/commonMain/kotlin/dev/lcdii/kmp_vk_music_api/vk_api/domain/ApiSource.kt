@@ -10,7 +10,6 @@ public interface ApiSource {
         captchaResolver: VkCaptchaResolver,
         validationResolver: VkValidationResolver
     ): Result<ApiResponse, DataError>
-    public suspend fun getUserId(): Result<Int, DataError.Remote>
     public suspend fun getProfileInfo(): Result<ApiResponse, DataError.Remote>
     public suspend fun getUsersAudioCount(userId: Int): Result<ApiResponse, DataError.Remote>
     public suspend fun getUsersAudio(
@@ -19,7 +18,7 @@ public interface ApiSource {
         offset: Int? = null,
         playlistAttributes: PlaylistAttributes? = null
     ): Result<ApiResponse, DataError.Remote>
-    public suspend fun getUsersPlaylist(
+    public suspend fun getUsersPlaylists(
         userId: Int,
         count: Int? = null,
         offset: Int?= null

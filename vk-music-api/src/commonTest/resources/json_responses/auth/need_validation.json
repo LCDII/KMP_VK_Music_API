@@ -1,0 +1,6 @@
+{
+  "error": "need_validation",
+  "error_description": "Enter the code from SMS",
+  "validation_type": "2fa_sms",
+  "validation_sid": "validation_sid"
+}

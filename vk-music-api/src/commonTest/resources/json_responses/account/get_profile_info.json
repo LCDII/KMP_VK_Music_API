@@ -1,0 +1,35 @@
+{
+  "response": {
+    "id": 123,
+    "home_town": "Name Surname",
+    "status": "",
+    "photo_200": "https://sun2-15.userapi.com/impg/PXsiUtv24B30YboyAlZcsij4AbU4U0-xwYZENA/-fBnwIsQKF8.jpg?size=270x270&quality=95&sign=e84891bf5bb6b29282d43f46b9027463&c_uniq_tag=5P3RIM27FXWkP8_-vJHh-D4Xko8V9pZqbxcEJuhLKF0&type=audio",
+    "is_service_account": false,
+    "is_esia_verified": false,
+    "is_esia_linked": false,
+    "is_tinkoff_linked": false,
+    "is_tinkoff_verified": false,
+    "bdate": "9.9.2009",
+    "is_verified": false,
+    "is_sber_verified": false,
+    "oauth_linked": [],
+    "oauth_verification": [],
+    "verification_status": "unverified",
+    "promo_verifications": [],
+    "first_name": "Name",
+    "last_name": "Surname",
+    "bdate_visibility": 1,
+    "city": {
+      "id": 1,
+      "title": "City"
+    },
+    "country": {
+      "id": 1,
+      "title": "Россия"
+    },
+    "phone": "+7 *** *** ** 33",
+    "relation": 0,
+    "screen_name": "screen_name",
+    "sex": 2
+  }
+}

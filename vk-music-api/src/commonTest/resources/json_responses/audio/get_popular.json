@@ -1,0 +1,48 @@
+{
+  "response": [
+    {
+      "artist": "Dua Lipa",
+      "id": 456240861,
+      "owner_id": -30462549,
+      "title": "Lost In Your Light (feat. Miguel)",
+      "duration": 203,
+      "access_key": "e522bc3ba78c5e746b",
+      "ads": {
+        "content_id": "-30462549_456240861",
+        "duration": "203",
+        "account_age_type": "3",
+        "puid1": "554",
+        "puid22": "11"
+      },
+      "is_explicit": false,
+      "is_focus_track": false,
+      "is_licensed": true,
+      "track_code": "5c3269ebZpuY5Vk8k06xwSZ0UEfePm434mEF8IayN1u286ErDIsSNyc8zqIZ3To-J6kKdrTpaDfiYQU",
+      "url": "https://cs9-3v4.vkuseraudio.net/s/v1/ac/O9Cu7bRbCK8h7okKoLy5RVXxhy4L467JnQxdB2TPci2jnnHdWdtLqw2d95l37w8Mu5E9P9wlaCkrZVXk2tc-Bh4LGoGoIx78Hu7i8X_6yYZdBOTTVbW35IWACQavoJ6hpfjIvxqt9WkQ2QTC34lkpKN15tVjFbnVImgJqm-kc-ufQas/index.m3u8?siren=1",
+      "date": 1492759440,
+      "album": {
+        "id": 1076509,
+        "title": "unnamed",
+        "owner_id": -2000076509,
+        "access_key": "f2d75b3aec2f7d4939",
+        "thumb": {
+          "width": 1500,
+          "height": 1500,
+          "id": "457239114",
+          "photo_34": "https://sun2-17.userapi.com/impg/_H9HiiPoSN5WCJVbcIoROxtsB1JdcHSVXi1JrQ/3UY5Jce-kgw.jpg?size=34x34&quality=95&sign=ab13a5a5585ef2dfb069ac19cf8d837b&c_uniq_tag=MAzczXBdawQ_a_MiNCqNUTbJMrm76r5zeQZgcAqrnw8&type=audio",
+          "photo_68": "https://sun2-17.userapi.com/impg/_H9HiiPoSN5WCJVbcIoROxtsB1JdcHSVXi1JrQ/3UY5Jce-kgw.jpg?size=68x68&quality=95&sign=2c8dd65dc4fc969300e9c809e1d1d9f1&c_uniq_tag=rTNAXwi9nNNTRt4wyFyYrvw8slY7pFX3HapbX1CkF_I&type=audio",
+          "photo_135": "https://sun2-17.userapi.com/impg/_H9HiiPoSN5WCJVbcIoROxtsB1JdcHSVXi1JrQ/3UY5Jce-kgw.jpg?size=135x135&quality=95&sign=5b81edbb252fdc2f0e28c3a35ba0bbd6&c_uniq_tag=aI7iO68-Ql_GwG-soP3Hd2xv1WbqxZGlf2frGAqjqDQ&type=audio",
+          "photo_270": "https://sun2-17.userapi.com/impg/_H9HiiPoSN5WCJVbcIoROxtsB1JdcHSVXi1JrQ/3UY5Jce-kgw.jpg?size=270x270&quality=95&sign=86a2d10daf365efc7eaf548d1f72810c&c_uniq_tag=hObqjX4QXXs1auMsvOoHKf82KLwA2MhMnTf1AWS-NE4&type=audio",
+          "photo_300": "https://sun2-17.userapi.com/impg/_H9HiiPoSN5WCJVbcIoROxtsB1JdcHSVXi1JrQ/3UY5Jce-kgw.jpg?size=300x300&quality=95&sign=349f387796b9e5912856ac6abc4cdf08&c_uniq_tag=s3JgO0BtkFPA57d1A9NTK8VvN_Dt8vACsTE9qVFmbkM&type=audio",
+          "photo_600": "https://sun2-17.userapi.com/impg/_H9HiiPoSN5WCJVbcIoROxtsB1JdcHSVXi1JrQ/3UY5Jce-kgw.jpg?size=600x600&quality=95&sign=74811d010f8f500f6c7b7d374a494825&c_uniq_tag=qttPjObAiIl_t2NoSiGu4QmuuxZ6T0aG6k847X8lPGY&type=audio",
+          "photo_1200": "https://sun2-17.userapi.com/impg/_H9HiiPoSN5WCJVbcIoROxtsB1JdcHSVXi1JrQ/3UY5Jce-kgw.jpg?size=1200x1200&quality=95&sign=2482e6b766ae1a2ac8d8a4b8fb45b71c&c_uniq_tag=vdBYWiqImG5lw-ig2rANy2uj8W8op1xPrBVaY6A8I9M&type=audio"
+        },
+        "main_color": "#AF87A1"
+      },
+      "track_id": 10331079,
+      "is_official": false,
+      "release_audio_id": "-2001328583_30328583",
+      "file_id": "b34ee533-6e67-463e-9d2c-2dd415150d83"
+    }
+  ]
+}

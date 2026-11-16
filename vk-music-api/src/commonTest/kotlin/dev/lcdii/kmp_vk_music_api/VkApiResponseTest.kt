@@ -3,8 +3,9 @@ package dev.lcdii.kmp_vk_music_api
 import com.goncalossilva.resources.Resource
 import dev.lcdii.kmp_vk_music_api.components.responses.audio.*
 import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.VkApiResponse
-import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.decodeResponse
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromJsonElement
+import kotlinx.serialization.json.jsonObject
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -12,6 +13,12 @@ private val testJson = Json {
     ignoreUnknownKeys = true
     explicitNulls = false
 }
+
+public inline fun <reified T: VkApiResponse> Json.decodeResponse(jsonString: String): T =
+    this.decodeFromJsonElement<T>(
+        this.parseToJsonElement(jsonString).jsonObject["response"] ?:
+        error("No Response Object")
+    )
 
 class VkApiResponseTest {
     @Test

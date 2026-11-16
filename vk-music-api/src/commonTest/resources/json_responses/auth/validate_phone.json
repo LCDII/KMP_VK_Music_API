@@ -1,0 +1,7 @@
+{
+  "response": {
+    "type": "2fa_sms",
+    "sid": "validation_sid",
+    "delay": 60
+  }
+}

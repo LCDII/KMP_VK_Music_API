@@ -6,9 +6,12 @@ import dev.lcdii.kmp_vk_music_api.core.AUDIO_ADD_URL
 import dev.lcdii.kmp_vk_music_api.core.AUDIO_CREATE_PLAYLIST_URL
 import dev.lcdii.kmp_vk_music_api.core.AUDIO_DELETE_PLAYLIST_URL
 import dev.lcdii.kmp_vk_music_api.core.AUDIO_DELETE_URL
+import dev.lcdii.kmp_vk_music_api.core.AUDIO_GET_BY_ID_URL
+import dev.lcdii.kmp_vk_music_api.core.AUDIO_GET_POPULAR_URL
 import dev.lcdii.kmp_vk_music_api.core.AUDIO_GET_URL
 import dev.lcdii.kmp_vk_music_api.core.AUDIO_PLAYLIST_GET_URL
 import dev.lcdii.kmp_vk_music_api.core.AUDIO_REMOVE_FROM_PLAYLIST_URL
+import dev.lcdii.kmp_vk_music_api.core.AUDIO_SEARCH_ALBUMS_URL
 import dev.lcdii.kmp_vk_music_api.core.AUDIO_SEARCH_PLAYLIST_URL
 import dev.lcdii.kmp_vk_music_api.core.AUDIO_SEARCH_URL
 import dev.lcdii.kmp_vk_music_api.core.DEFAULT_AUDIO_AUTOCOMPLETE_MODE
@@ -239,6 +242,76 @@ internal sealed interface VkApiRequest {
                 query = query,
                 count = count ?: DEFAULT_PLAYLIST_COUNT,
                 offset = offset ?: DEFAULT_PLAYLIST_OFFSET
+            ),
+            headers = headers
+        )
+    }
+
+    data class GetById(
+        override val parameters: Parameters,
+        override val headers: Map<String, String> = emptyMap()
+    ): VkApiRequest {
+        override val method = HttpMethod.GET
+        override val path = AUDIO_GET_BY_ID_URL
+
+        data class Parameters(
+            val audioIds: List<String>
+        ) : VkApiRequestParameters
+
+        constructor(
+            audioIds: List<String>,
+            headers: Map<String, String> = emptyMap()
+        ) : this(Parameters(audioIds), headers)
+    }
+
+    data class SearchAlbums(
+        override val parameters: Parameters,
+        override val headers: Map<String, String> = emptyMap()
+    ) : VkApiRequest {
+        override val method = HttpMethod.GET
+        override val path = AUDIO_SEARCH_ALBUMS_URL
+
+        data class Parameters(
+            val query: String,
+            val count: Int = DEFAULT_PLAYLIST_COUNT,
+            val offset: Int = DEFAULT_PLAYLIST_OFFSET
+        ) : VkApiRequestParameters
+
+        constructor(
+            query: String,
+            count: Int?,
+            offset: Int?,
+            headers: Map<String, String> = emptyMap()
+        ) : this(
+            parameters = Parameters(
+                query = query,
+                count = count ?: DEFAULT_PLAYLIST_COUNT,
+                offset = offset ?: DEFAULT_PLAYLIST_OFFSET
+            ),
+            headers = headers
+        )
+    }
+
+    data class GetPopular(
+        override val parameters: Parameters,
+        override val headers: Map<String, String> = emptyMap()
+    ) : VkApiRequest {
+        override val method = HttpMethod.GET
+        override val path = AUDIO_GET_POPULAR_URL
+
+        data class Parameters(
+            val count: Int = DEFAULT_AUDIO_COUNT,
+            val offset: Int = DEFAULT_AUDIO_OFFSET
+        ) : VkApiRequestParameters
+
+        constructor(
+            count: Int?,
+            offset: Int?,
+            headers: Map<String, String> = emptyMap()
+        ) : this(
+            parameters = Parameters(
+                count ?: DEFAULT_AUDIO_COUNT,
+                offset ?: DEFAULT_AUDIO_OFFSET
             ),
             headers = headers
         )

@@ -13,7 +13,7 @@ import android.widget.ScrollView
 import android.widget.TextView
 import dev.lcdii.kmp_vk_music_api.di.VkApiKoinModules
 import dev.lcdii.kmp_vk_music_api.vk_api.AndroidAuth
-import dev.lcdii.kmp_vk_music_api.vk_api.domain.ApiSource
+import dev.lcdii.kmp_vk_music_api.vk_api.VkApiSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -22,7 +22,6 @@ import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.startKoin
 import dev.lcdii.kmp_vk_music_api.core.Result
-import dev.lcdii.kmp_vk_music_api.vk_api.data.dto.VkApiResponse
 
 class AndroidAuthTestActivity : Activity() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -122,7 +121,7 @@ class AndroidAuthTestActivity : Activity() {
 
         scope.launch {
             try {
-                when (val userIdResult = koin.get<ApiSource>().getUserId()) {
+                when (val userIdResult = koin.get<VkApiSource>().getUserId()) {
                     is Result.Success -> {
                         loginInput.isEnabled = false
                         passwordInput.isEnabled = false
@@ -156,8 +155,12 @@ class AndroidAuthTestActivity : Activity() {
                         this@AndroidAuthTestActivity, login, password
                     )) {
                         is Result.Success -> {
-                            val authResponse = result.data as? VkApiResponse.AuthResponse
-                            resultText.text = "Success\nuser_id: ${authResponse?.userId ?: "not returned"}"
+                            when (val idResult = koin.get<VkApiSource>().getUserId()) {
+                                is Result.Success ->
+                                    resultText.text = "Success\nuser_id: ${idResult.data}"
+                                is Result.Error ->
+                                    resultText.text = "Success, but user_id failed:\n${idResult.error}"
+                            }
                         }
                         is Result.Error -> {
                             resultText.text = "Authorization error:\n${result.error}"
