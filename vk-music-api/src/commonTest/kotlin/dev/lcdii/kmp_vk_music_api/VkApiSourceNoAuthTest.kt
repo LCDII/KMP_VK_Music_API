@@ -82,7 +82,7 @@ private const val POPULAR_OFFSET: Int = 50
 private val AUDIO_IDS: List<String> = listOf("123_456", "234_567", "345_678")
 
 
-class VkApiSourceTest {
+class VkApiSourceNoAuthTest {
     private class TestTokenStorage(
         private var token: String? = TEST_TOKEN
     ): TokenStorage {
